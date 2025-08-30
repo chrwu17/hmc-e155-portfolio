@@ -1,10 +1,15 @@
 ---
-title: "Hello Quarto"
-description: "Welcome to my Quarto portfolio"
+title: "Semester Goals for E155"
+description: "These are my initial thoughts on the course and what I hope to gain out of it"
 author: "Christian Wu"
 date: "8/29/25"
 categories:
   - reflection
-  - labreport
 draft: false
 ---
+
+I took this course for a few reasons. First, I think that Hardware Engineering is a future career path for me, and something that I want to pursue long term. It is a good intersection between challenging problem solving that can impact billions of people around the world and my passion for electronics and computing. When I took E85 last year with Prof. Harris, I really enjoyed working on the labs, while sometimes challenging, it was really rewarding to see a project of mine come to fruition. I've chosen to take this course in my Junior year, in hopes that it will open up opportunities for internships in Hardware Engineeering. I would like to use my last summer of internships to be able to decide what career I would like to pursue after graduating from Mudd next year. 
+
+This semester, I would like to be able to absorb as much knowledge as I can, learning new techniques and ways to deal with software and hwardware. I think the nature of this class and the difficulty associated with it will also push me to learn some intangible skills that can be applied in my post-Mudd life. The tenacity and perseverance through challenging labs that aren't going my way, and the ability to work more efficiently and under a time constraint to complete the labs on time every week will be valuable to being able to meet deadlines and tackle challenging real world problems in the industry.
+
+I look forward to a great semester of learning!
