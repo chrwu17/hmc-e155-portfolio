@@ -1,15 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://chrwu17.github.io/hmc-e155-portfolio/posts/first-post.html</loc>
-    <lastmod>2025-08-30T05:18:13.397Z</lastmod>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/resources.html</loc>
+    <lastmod>2025-08-30T05:57:56.347Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/overview.html</loc>
+    <lastmod>2025-08-30T06:30:36.531Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab6/lab6.html</loc>
+    <lastmod>2025-08-30T06:09:14.238Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab4/lab4.html</loc>
+    <lastmod>2025-08-30T06:08:27.343Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab2/lab2.html</loc>
+    <lastmod>2025-08-30T06:07:35.509Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/index.html</loc>
+    <lastmod>2025-08-30T05:29:08.524Z</lastmod>
   </url>
   <url>
     <loc>https://chrwu17.github.io/hmc-e155-portfolio/blog.html</loc>
     <lastmod>2025-08-30T05:18:13.394Z</lastmod>
   </url>
   <url>
-    <loc>https://chrwu17.github.io/hmc-e155-portfolio/index.html</loc>
-    <lastmod>2025-08-30T05:18:13.397Z</lastmod>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab1/lab1.html</loc>
+    <lastmod>2025-08-30T05:57:52.956Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab3/lab3.html</loc>
+    <lastmod>2025-08-30T06:07:58.188Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab5/lab5.html</loc>
+    <lastmod>2025-08-30T06:08:47.224Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/labs/lab7/lab7.html</loc>
+    <lastmod>2025-08-30T06:21:21.573Z</lastmod>
+  </url>
+  <url>
+    <loc>https://chrwu17.github.io/hmc-e155-portfolio/posts/first-post.html</loc>
+    <lastmod>2025-08-30T06:22:38.969Z</lastmod>
   </url>
 </urlset>

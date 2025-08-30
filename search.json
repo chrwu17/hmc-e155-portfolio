@@ -1,10 +1,66 @@
 [
   {
-    "objectID": "blog.html",
-    "href": "blog.html",
-    "title": "E155 Blog",
+    "objectID": "resources.html",
+    "href": "resources.html",
+    "title": "Resources",
     "section": "",
-    "text": "Hello Quarto\n\n\nWelcome to my Quarto portfolio\n\n\n\n\n\nAug 29, 2025\n\n\nChristian Wu\n\n\n\n\n\nNo matching items"
+    "text": "HMC E155 Course Website:  Link"
+  },
+  {
+    "objectID": "labs/overview.html",
+    "href": "labs/overview.html",
+    "title": "Overview",
+    "section": "",
+    "text": "Lab 1: E155 Website Description\nLab 1: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-1-board-assembly-and-testing",
+    "href": "labs/overview.html#lab-1-board-assembly-and-testing",
+    "title": "Overview",
+    "section": "",
+    "text": "Lab 1: E155 Website Description\nLab 1: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-2-multiplexed-7-segment-display",
+    "href": "labs/overview.html#lab-2-multiplexed-7-segment-display",
+    "title": "Overview",
+    "section": "Lab 2: Multiplexed 7-Segment Display",
+    "text": "Lab 2: Multiplexed 7-Segment Display\nLab 2: E155 Website Description\nLab 2: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-3-keypad-scanner",
+    "href": "labs/overview.html#lab-3-keypad-scanner",
+    "title": "Overview",
+    "section": "Lab 3: Keypad Scanner",
+    "text": "Lab 3: Keypad Scanner\nLab 3: E155 Website Description\nLab 3: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-4-digital-audio",
+    "href": "labs/overview.html#lab-4-digital-audio",
+    "title": "Overview",
+    "section": "Lab 4: Digital Audio",
+    "text": "Lab 4: Digital Audio\nLab 4: E155 Website Description\nLab 4: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-5-interrupts",
+    "href": "labs/overview.html#lab-5-interrupts",
+    "title": "Overview",
+    "section": "Lab 5: Interrupts",
+    "text": "Lab 5: Interrupts\nLab 5: E155 Website Description\nLab 5: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-6-the-internet-of-things-and-serial-peripheral-interface",
+    "href": "labs/overview.html#lab-6-the-internet-of-things-and-serial-peripheral-interface",
+    "title": "Overview",
+    "section": "Lab 6: The Internet of Things and Serial Peripheral Interface",
+    "text": "Lab 6: The Internet of Things and Serial Peripheral Interface\nLab 6: E155 Website Description\nLab 6: Writeup"
+  },
+  {
+    "objectID": "labs/overview.html#lab-7-the-advanced-encryption-standard-aes",
+    "href": "labs/overview.html#lab-7-the-advanced-encryption-standard-aes",
+    "title": "Overview",
+    "section": "Lab 7: The Advanced Encryption Standard (AES)",
+    "text": "Lab 7: The Advanced Encryption Standard (AES)\nLab 7: E155 Website Description\nLab 7: Writeup"
   },
   {
     "objectID": "index.html",
@@ -12,5 +68,33 @@
     "title": "E155 Portfolio",
     "section": "",
     "text": "Christian Wu is a Junior at Harvey Mudd College studying Engineering, with an interest in digital electronics and hardware engineering. Christian grew up in Santiago, Chile, until he moved to the United States to attend Harvey Mudd. His professional experience includes being a manufacturing engineering intern at Johnson & Johnson and General Motors. Christian is a Machine Shop Proctor at Harvey Mudd and enjoys playing basketball in his time off."
+  },
+  {
+    "objectID": "blog.html",
+    "href": "blog.html",
+    "title": "E155 Blog",
+    "section": "",
+    "text": "Semester Goals for E155\n\n\nThese are my initial thoughts on the course and what I hope to gain out of it\n\n\n\n\n\nAug 29, 2025\n\n\nChristian Wu\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html",
+    "href": "labs/lab1/lab1.html",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "",
+    "text": "The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#introduction",
+    "href": "labs/lab1/lab1.html#introduction",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "",
+    "text": "The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display"
+  },
+  {
+    "objectID": "posts/first-post.html",
+    "href": "posts/first-post.html",
+    "title": "Semester Goals for E155",
+    "section": "",
+    "text": "I took this course for a few reasons. First, I think that Hardware Engineering is a future career path for me, and something that I want to pursue long term. It is a good intersection between challenging problem solving that can impact billions of people around the world and my passion for electronics and computing. When I took E85 last year with Prof. Harris, I really enjoyed working on the labs, while sometimes challenging, it was really rewarding to see a project of mine come to fruition. I’ve chosen to take this course in my Junior year, in hopes that it will open up opportunities for internships in Hardware Engineeering. I would like to use my last summer of internships to be able to decide what career I would like to pursue after graduating from Mudd next year.\nThis semester, I would like to be able to absorb as much knowledge as I can, learning new techniques and ways to deal with software and hwardware. I think the nature of this class and the difficulty associated with it will also push me to learn some intangible skills that can be applied in my post-Mudd life. The tenacity and perseverance through challenging labs that aren’t going my way, and the ability to work more efficiently and under a time constraint to complete the labs on time every week will be valuable to being able to meet deadlines and tackle challenging real world problems in the industry.\nI look forward to a great semester of learning!"
   }
 ]
