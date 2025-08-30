@@ -1,0 +1,14 @@
+---
+title: "E155 Portfolio"
+image: headshot.jpg
+about:
+    template: jolla
+    links:
+        - icon: linkedin
+          text: LinkedIn
+          href: https://www.linkedin.com/in/christiancwu
+        - icon: github
+          text: Github
+          href: https://github.com/chrwu17
+---
+Christian Wu is a Junior at Harvey Mudd College studying Engineering, with an interest in digital electronics and hardware engineering. Christian grew up in Santiago, Chile, until he moved to the United States to attend Harvey Mudd. His professional experience includes being a manufacturing engineering intern at Johnson & Johnson and General Motors. Christian is a Machine Shop Proctor at Harvey Mudd and enjoys playing basketball in his time off. 
