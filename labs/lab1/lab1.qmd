@@ -1,6 +1,34 @@
 ---
 title: 'Lab 1: FPGA and MCU Setup and Testing'
+format:
+    html:
+        code-links:
+         - text: "Lab 1 Github Repo"
+           href: https://github.com/chrwu17/e155-lab1
+           icon: github
 ---
 
 ## Introduction
-The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display
+The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display and program onboard SMD LEDs
+
+## Board Preparation
+
+## Board Testing
+
+## FPGA Design
+
+### Objective
+
+### Design
+
+#### Block Diagram
+
+#### LED Design
+
+#### Seven Segment Display Design
+
+### Testbench Simulation and Testing
+
+### Hardware Design
+
+## Hours Spent
