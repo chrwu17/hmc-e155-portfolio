@@ -601,6 +601,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>    end</span>
 <span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>end</span>
 <span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>endmodule</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Something that I had trouble with on this testbench was getting it to output the message that says the tests completed with 0 errors. When I used <code>if (testvectors[vectornum] === 13'bx)</code> to stop the simulation and display the message, no message would display. Thus, I checked whether <code>vectornum</code> reached the number of test vectors I had and would stop the simulation. This method worked, however, I want to figure out why the other method would not work.</p>
 </section>
 <section id="testbench-results" class="level4">
 <h4 class="anchored" data-anchor-id="testbench-results">Testbench Results</h4>
@@ -620,7 +621,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 <p>In addition to the testbench for the LEDs, I also used an oscilloscope to confirm that <code>led[2]</code> is blinking at 2.4 Hz. The oscilloscope trace can be seen below:</p>
-<p>INSERT IMAGE</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/oscilloscope.JPG" class="img-fluid figure-img"></p>
+<figcaption>Oscilloscope trace showing <code>led[2]</code> blinking at 2.4 Hz</figcaption>
+</figure>
+</div>
 </section>
 <section id="lab1_sevensegmentdisplay_testbench-results" class="level5">
 <h5 class="anchored" data-anchor-id="lab1_sevensegmentdisplay_testbench-results"><code>lab1_sevenSegmentDisplay_testbench</code> results:</h5>
@@ -829,7 +835,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/1ha.JPG" class="img-fluid figure-img"></p>
-<figcaption>7-Segment Display showing 1’ha</figcaption>
+<figcaption>7-Segment Display showing 1’hA</figcaption>
 </figure>
 </div>
 </div>
@@ -847,7 +853,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/1hc.JPG" class="img-fluid figure-img"></p>
-<figcaption>7-Segment Display showing 1’hc</figcaption>
+<figcaption>7-Segment Display showing 1’hC</figcaption>
 </figure>
 </div>
 </div>
@@ -863,7 +869,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/1he.JPG" class="img-fluid figure-img"></p>
-<figcaption>7-Segment Display showing 1’he</figcaption>
+<figcaption>7-Segment Display showing 1’hE</figcaption>
 </figure>
 </div>
 </div>
@@ -871,7 +877,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/1hf.JPG" class="img-fluid figure-img"></p>
-<figcaption>7-Segment Display showing 1’hf</figcaption>
+<figcaption>7-Segment Display showing 1’hF</figcaption>
 </figure>
 </div>
 </div>
