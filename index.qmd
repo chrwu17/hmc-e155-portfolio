@@ -11,6 +11,6 @@ about:
           text: Github
           href: https://github.com/chrwu17
 ---
-Christian Wu is a Junior at Harvey Mudd College studying Engineering, with an passion for in digital electronics and hardware engineering. Christian grew up in Santiago, Chile, until he moved to the United States to attend Harvey Mudd College. His professional experience includes being a manufacturing engineering intern at Johnson & Johnson and General Motors. Christian is a Machine Shop Proctor at Harvey Mudd and enjoys playing basketball in his time off. 
+Christian Wu is a Junior at Harvey Mudd College studying Engineering, with an passion for digital electronics and hardware engineering. Christian grew up in Santiago, Chile, until he moved to the United States to attend Harvey Mudd College. His professional experience includes being a manufacturing engineering intern at Johnson & Johnson and General Motors. Christian is a Machine Shop Proctor at Harvey Mudd and enjoys playing basketball in his time off. 
 
 This portofolio will highlight the work done over the course of the semester in [E155: Microprocessor Based Systems](https://hmc-e155.github.io/)
