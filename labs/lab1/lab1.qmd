@@ -128,7 +128,7 @@ Designing the `lab1_sevenSegmentDisplay` submodule was fairly simple. It involve
 
 Below is a labeled image of each segment of the 7-segment display and the code for this submodule, where `s[0]` is segment A and `s[6]` is segment G of the 7-segment display:
 
-![7-segment display segment mapping](images/seven_seg_map.png)
+![7-segment display segment mapping](images/seven_seg_map.png){width=25%}
 
 ```markdown
 // lab1_sevenSegmentDisplay.sv
