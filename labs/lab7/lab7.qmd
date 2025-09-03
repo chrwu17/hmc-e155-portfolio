@@ -1,2 +1,0 @@
----
-title: 'Lab 7: The Advanced Encryption Standard (AES)'
