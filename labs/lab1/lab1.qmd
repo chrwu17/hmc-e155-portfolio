@@ -368,7 +368,84 @@ Below is a picture demonstrating `led[1]` being on when `s[3]` and `s[2]` is on,
 
 INSERT IMAGE
 
+As a result, my design and project has met all the requirements for this lab. 
+
 ## AI Prototype
+
+### Prompt
+To test how AI would do for this lab, I entered the following prompt to Claude AI:
+
+```markdown
+Write SystemVerilog HDL to leverage the internal high speed oscillator in the Lattice UP5K FPGA and blink an LED at 2 Hz. Take full advantage of SystemVerilog syntax, for example, using logic instead of wire and reg.
+```
+### AI Code
+As a result, it returned the following code:
+
+```markdown
+// SystemVerilog LED Blinker for Lattice UP5K FPGA
+// Uses internal 48MHz oscillator to blink LED at 2Hz
+// Takes advantage of SystemVerilog features like logic, always_ff, etc.
+
+module led_blinker_up5k (
+    output logic led
+);
+
+    // Internal oscillator clock signal
+    logic clk_48mhz;
+    
+    // Counter for frequency division
+    // Need to divide 48MHz by 12M to get 4Hz toggle (2Hz blink)
+    // 12M = 12_000_000 requires 24 bits (2^24 = 16,777,216)
+    localparam int COUNTER_MAX = 12_000_000 - 1;
+    logic [23:0] counter;
+    
+    // LED output register
+    logic led_reg;
+    
+    // Instantiate the internal high-frequency oscillator
+    // SB_HFOSC is the Lattice UP5K primitive for the internal oscillator
+    SB_HFOSC #(
+        .CLKHF_DIV("0b00")  // 48MHz (divide by 1)
+    ) hfosc_inst (
+        .CLKHFPU(1'b1),     // Power up the oscillator
+        .CLKHFEN(1'b1),     // Enable the oscillator
+        .CLKHF(clk_48mhz)   // 48MHz clock output
+    );
+    
+    // Counter logic using SystemVerilog always_ff
+    always_ff @(posedge clk_48mhz) begin
+        if (counter >= COUNTER_MAX) begin
+            counter <= '0;
+            led_reg <= ~led_reg;  // Toggle LED every 0.25 seconds
+        end else begin
+            counter <= counter + 1'b1;
+        end
+    end
+    
+    // Assign LED output
+    assign led = led_reg;
+
+endmodule
+```
+
+### Test in Radiant
+I then started a new project in Radiant and attempted to synthesize the code. It was unable to synthesize due to the following error:
+
+```markdown
+ERROR <35901063> - c:/users/chris/onedrive/desktop/wu-e155-lab1/lab1_cw_aiprototype/source/impl_1/led_blinker_up5k.sv(29): instantiating unknown module SB_HFOSC. VERI-1063
+
+child process exited abnormally
+Done: error code 1
+```
+
+Claude AI proceded to make some changes but after synthesizing, it still returned the same error. 
+
+### Reflection
+After comparing my code to the one that Claude produced, I was able to see the potential of coding with AI. Claude got everything in the module correct with the exception of the HSOSC part. Although this is the most important part and Claude got it wrong, it was very close to being right, and small tweaks and guidance in the right direction on to properly use the HSOSC library would result in code that would work. 
+
+I like how clean the syntax of Claude is, and the variable names are informative. The added comments are also quite helpful to understand the logic and structure of the code. With some support on the library, coding with an AI can be very powerful, as it is able to do the bulk of the work for us quickly and efficiently. Small tweaks for more nuanced things like specific libraries is a reasonable fix for me and an easy one to do, to be able to take advantage of the power of AI for the rest of the code. To do this, I could either change the code manually, or create more specific prompts to tell it how to use the library in a way that will work. 
+
+Overall, I am very impressed with how well it worked, and I see a lot of potential for it to be used for the final project. 
 
 ## Hours Spent
 I spent 23 hours on this lab.
