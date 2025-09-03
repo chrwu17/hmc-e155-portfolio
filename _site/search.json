@@ -1,10 +1,66 @@
 [
   {
-    "objectID": "resources.html",
-    "href": "resources.html",
-    "title": "Resources",
+    "objectID": "blog.html",
+    "href": "blog.html",
+    "title": "E155 Blog",
     "section": "",
-    "text": "HMC E155 Course Website:  Link"
+    "text": "Semester Goals for E155\n\n\nThese are my initial thoughts on the course and what I hope to gain out of it\n\n\n\n\n\nAug 29, 2025\n\n\nChristian Wu\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "E155 Portfolio",
+    "section": "",
+    "text": "Christian Wu is a Junior at Harvey Mudd College studying Engineering, with an passion for in digital electronics and hardware engineering. Christian grew up in Santiago, Chile, until he moved to the United States to attend Harvey Mudd College. His professional experience includes being a manufacturing engineering intern at Johnson & Johnson and General Motors. Christian is a Machine Shop Proctor at Harvey Mudd and enjoys playing basketball in his time off.\nThis portofolio will highlight the work done over the course of the semester in E155: Microprocessor Based Systems"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html",
+    "href": "labs/lab1/lab1.html",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "",
+    "text": "The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display and program onboard SMD LEDs"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#introduction",
+    "href": "labs/lab1/lab1.html#introduction",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "",
+    "text": "The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display and program onboard SMD LEDs"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#board-preparation",
+    "href": "labs/lab1/lab1.html#board-preparation",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Board Preparation",
+    "text": "Board Preparation\nTo prepare the development board for use, all the necessary components needed to be soldered on. This includes the 5V and 3.3 V Regulators, the necessary SMT Resistors, Capacitors, and Diodes, and all the necesary THT buttons, switches, and female connector pins. I followed the Interactive Development Board BOM to keep track of all the components that I soldered.\nThe parts that gave me the most trouble while soldering were the two voltage regulators, as I could not get them to adhere to the solder and stay on the board. I was not able to melt the solder while making contact with the regulator, but after a while of trial and error and guidance from Xavier, I was able to get it to work. Other than that, the rest of the components were straight forward to solder, and the step by step suggestions on the course website aided the process.\nBelow, is a picture of my fully assembled Development Board\nINSERT IMAGE"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#board-testing",
+    "href": "labs/lab1/lab1.html#board-testing",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Board Testing",
+    "text": "Board Testing\nTo test whether the board was soldered and assembled correctly, and that the FPGA and MCU are working correctly, I first followed the Lattice Radiant iCE40 UltraPlus Project Setup Tutorial. All of the setup on Radiant went smoothly, however, I had difficulty in programming onto my FPGA. On my personal laptop, the Programmer software would crash everytime I clicked the ‘detect cable button’, and on the lab computers, I would get an FTDI error when uploading code to the FPGA. I was unable to fix this issue for around 3 days, until a new programming method was uploaded (Thank you Kavi!). Thus, I followed the openFPGALoader Programmer Tutorial and was able to successfully program my FPGA. This allowed me to finish the tutorial and successfully see the onboard LED D6 at P42 blinking.\nI continued to do further testing on the FPGA as well as the MCU, I downloaded test code from the course Lab 1 Github Repo and programmed onto my board. After running the code on both my FPGA and MCU, I saw that when I had SW7 switched on, LED D3 (PA9/P25), LED D2 (PA10/P23), and LED D7 (P38) were all blinking.\nThis means that I have successfully tested by development board, FPGA, and MCU, so I know that all my components are working as expected."
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#fpga-design",
+    "href": "labs/lab1/lab1.html#fpga-design",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "FPGA Design",
+    "text": "FPGA Design\n\nObjective\n\n\nDesign\n\nBlock Diagram\n\n\nLED Design\n\n\nSeven Segment Display Design\n\n\n\nTestbench Simulation and Testing\n\n\nHardware Design"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#ai-prototype",
+    "href": "labs/lab1/lab1.html#ai-prototype",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "AI Prototype",
+    "text": "AI Prototype"
+  },
+  {
+    "objectID": "labs/lab1/lab1.html#hours-spent",
+    "href": "labs/lab1/lab1.html#hours-spent",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Hours Spent",
+    "text": "Hours Spent\nI spent 23 hours on this lab."
   },
   {
     "objectID": "labs/overview.html",
@@ -63,38 +119,17 @@
     "text": "Lab 7: The Advanced Encryption Standard (AES)\nLab 7: E155 Website Description\nLab 7: Writeup"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "E155 Portfolio",
-    "section": "",
-    "text": "Christian Wu is a Junior at Harvey Mudd College studying Engineering, with an interest in digital electronics and hardware engineering. Christian grew up in Santiago, Chile, until he moved to the United States to attend Harvey Mudd. His professional experience includes being a manufacturing engineering intern at Johnson & Johnson and General Motors. Christian is a Machine Shop Proctor at Harvey Mudd and enjoys playing basketball in his time off."
-  },
-  {
-    "objectID": "blog.html",
-    "href": "blog.html",
-    "title": "E155 Blog",
-    "section": "",
-    "text": "Semester Goals for E155\n\n\nThese are my initial thoughts on the course and what I hope to gain out of it\n\n\n\n\n\nAug 29, 2025\n\n\nChristian Wu\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "labs/lab1/lab1.html",
-    "href": "labs/lab1/lab1.html",
-    "title": "Lab 1: FPGA and MCU Setup and Testing",
-    "section": "",
-    "text": "The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display"
-  },
-  {
-    "objectID": "labs/lab1/lab1.html#introduction",
-    "href": "labs/lab1/lab1.html#introduction",
-    "title": "Lab 1: FPGA and MCU Setup and Testing",
-    "section": "",
-    "text": "The goal of this lab was to set up our E155 Board, soldering on all the necessary components, testing that the board functions with our FPGA and MCU, and writing code to display all hexadecimal digits on a 7-segment display"
-  },
-  {
     "objectID": "posts/first-post.html",
     "href": "posts/first-post.html",
     "title": "Semester Goals for E155",
     "section": "",
     "text": "I took this course for a few reasons. First, I think that Hardware Engineering is a future career path for me, and something that I want to pursue long term. It is a good intersection between challenging problem solving that can impact billions of people around the world and my passion for electronics and computing. When I took E85 last year with Prof. Harris, I really enjoyed working on the labs, while sometimes challenging, it was really rewarding to see a project of mine come to fruition. I’ve chosen to take this course in my Junior year, in hopes that it will open up opportunities for internships in Hardware Engineeering. I would like to use my last summer of internships to be able to decide what career I would like to pursue after graduating from Mudd next year.\nThis semester, I would like to be able to absorb as much knowledge as I can, learning new techniques and ways to deal with software and hwardware. I think the nature of this class and the difficulty associated with it will also push me to learn some intangible skills that can be applied in my post-Mudd life. The tenacity and perseverance through challenging labs that aren’t going my way, and the ability to work more efficiently and under a time constraint to complete the labs on time every week will be valuable to being able to meet deadlines and tackle challenging real world problems in the industry.\nI look forward to a great semester of learning!"
+  },
+  {
+    "objectID": "resources.html",
+    "href": "resources.html",
+    "title": "Resources",
+    "section": "",
+    "text": "HMC E155 Course Website:  Link"
   }
 ]
