@@ -304,6 +304,8 @@ end
 endmodule
 ```
 
+Something that I had trouble with on this testbench was getting it to output the message that says the tests completed with 0 errors. When I used `if (testvectors[vectornum] === 13'bx)` to stop the simulation and display the message, no message would display. Thus, I checked whether `vectornum` reached the number of test vectors I had and would stop the simulation. This method worked, however, I want to figure out why the other method would not work. 
+
 #### Testbench Results
 I was able to simulate each of my modules in Questa and it successfully worked, meaning that the outputs of my modules matched the expected output depicted by my test vectors. Below are the waveforms for each of my module's testbenches. 
 
@@ -316,7 +318,7 @@ I was able to simulate each of my modules in Questa and it successfully worked, 
 
 In addition to the testbench for the LEDs, I also used an oscilloscope to confirm that `led[2]` is blinking at 2.4 Hz. The oscilloscope trace can be seen below:
 
-INSERT IMAGE
+![Oscilloscope trace showing `led[2]` blinking at 2.4 Hz](images/oscilloscope.JPG)
 
 ##### `lab1_sevenSegmentDisplay_testbench` results:
 
@@ -386,17 +388,17 @@ Below are pictures demonstrating all 16 hexadecimal values on my 7-segment displ
 
 ![7-Segment Display showing 1'h9](images/1h9.JPG)
 
-![7-Segment Display showing 1'ha](images/1ha.JPG)
+![7-Segment Display showing 1'hA](images/1ha.JPG)
 
 ![7-Segment Display showing 1'hb](images/1hb.JPG)
 
-![7-Segment Display showing 1'hc](images/1hc.JPG)
+![7-Segment Display showing 1'hC](images/1hc.JPG)
 
 ![7-Segment Display showing 1'hd](images/1hd.JPG)
 
-![7-Segment Display showing 1'he](images/1he.JPG)
+![7-Segment Display showing 1'hE](images/1he.JPG)
 
-![7-Segment Display showing 1'hf](images/1hf.JPG)
+![7-Segment Display showing 1'hF](images/1hf.JPG)
 :::
 
 Below is a picture demonstrating `led[1]` being on when `s[3]` and `s[2]` is on, and `led[0]` being on with only `s[1]` being on. 
