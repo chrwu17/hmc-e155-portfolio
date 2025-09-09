@@ -8,6 +8,9 @@ format:
          - text: "Lab 1 Github Repo"
            href: https://github.com/chrwu17/e155-lab1
            icon: github
+        other-links:
+         - text: "E155 Course Website: Lab 1"
+           href: "https://hmc-e155.github.io/lab/lab1/"
 ---
 
 ## Introduction
@@ -20,7 +23,7 @@ The parts that gave me the most trouble while soldering were the two voltage reg
 
 Below, is a picture of my fully assembled Development Board
 
-INSERT IMAGE
+![Completed Development Board](images/developmentBoard.JPG)
 
 
 ## Board Testing
@@ -66,7 +69,7 @@ The output of `led[2]` will be programmed to blink at 2.4 Hz, while the outputs 
 #### Block Diagram
 My approach to this lab consists on three different modules. An overarching top level module called `lab1_cw`, which will be programmed to the board, and two submodules `lab1_ledController`, and `lab1_sevenSegmentDisplay`. The `lab1_ledController` submodule will control the output of each LED, utilizing the HSOSC library to control `led[2]`, and utilizing simple logic to control `led[1:0]`. The `lab1_sevenSegmentDisplay` submodule will control the outputs on the 7-segment display, displaying the hexadecimal value provided by the dip switches, `s[3:0]`. The `lab1_cw` module will call both the `lab1_ledController` submodule and the `lab1_sevenSegmentDisplay` submodule to run on the board. Below is the block diagram I used to create this project:
 
-INSERT IMAGE
+![Lab 1 Block Diagram](images/blockDiagram.jpeg)
 
 #### LED Design
 Design for the `lab1_ledController` submodule was split into two components, designing the logic for `led[1:0]` based on inputs `s[3:0]`, and making `led[2]` blink at 2.4 Hz. 
@@ -125,7 +128,7 @@ Designing the `lab1_sevenSegmentDisplay` submodule was fairly simple. It involve
 
 Below is a labeled image of each segment of the 7-segment display and the code for this submodule, where `s[0]` is segment A and `s[6]` is segment G of the 7-segment display:
 
-INSERT SEVEN SEGMENT DISPLAY MAPPING
+![7-segment display segment mapping](images/seven_seg_map.png){width=25%}
 
 ```markdown
 // lab1_sevenSegmentDisplay.sv
@@ -301,6 +304,8 @@ end
 endmodule
 ```
 
+Something that I had trouble with on this testbench was getting it to output the message that says the tests completed with 0 errors. When I used `if (testvectors[vectornum] === 13'bx)` to stop the simulation and display the message, no message would display. Thus, I checked whether `vectornum` reached the number of test vectors I had and would stop the simulation. This method worked, however, I want to figure out why the other method would not work. 
+
 #### Testbench Results
 I was able to simulate each of my modules in Questa and it successfully worked, meaning that the outputs of my modules matched the expected output depicted by my test vectors. Below are the waveforms for each of my module's testbenches. 
 
@@ -313,7 +318,7 @@ I was able to simulate each of my modules in Questa and it successfully worked, 
 
 In addition to the testbench for the LEDs, I also used an oscilloscope to confirm that `led[2]` is blinking at 2.4 Hz. The oscilloscope trace can be seen below:
 
-INSERT IMAGE
+![Oscilloscope trace showing `led[2]` blinking at 2.4 Hz](images/oscilloscope.JPG)
 
 ##### `lab1_sevenSegmentDisplay_testbench` results:
 
@@ -353,20 +358,52 @@ After finishing with testing, I can now build my hardware and program my FPGA. B
 
 : Pin assignments for Lab 1 inputs and outputs
 
-![Lab 1 Schematic](INSERT IMAGE)
+![Lab 1 Schematic](images/schematic.jpeg)
 
 For the 7-segment display, resistors were added at each of the seven segment pins to prevent the display from drawing too much current. After referencing the [HDSP-511A Seven Segment Display Datasheet](https://docs.broadcom.com/doc/AV02-1363EN), I found that the forward voltage for the display is 2 V. Given that we are using a 3.3 V source voltage from the FPGA, the voltage across the resistor is 1.3 V. It is safe for the 7-segment display's pins to be around 10-20 mA, so to keep it clean, I used 100 Ohm Resistors, giving a current of 13 mA. 
 
 #### Results
 After finishing with the design, I was able to wire my board according to the schematic and programming my top level module, `lab1_cw`, onto my board. Since the lab ran out of ribbon cables, I used female to male jumper cables to connect my FPGA from the development board to my breadboard. I was able to physically verify that everything worked as expected. I used the oscilloscope to confirm that `led[2]` was blinking at 2.4 Hz, and the 7-segment display was able to display all 16 hexadecimal inputs. `led[1:0]` were also able to light up as expected based on the inputs `s[3:0]`. 
 
-Below is a video demonstrating all 16 hexadecimal values on my 7-segment display. 
+Below are pictures demonstrating all 16 hexadecimal values on my 7-segment display: 
 
-INSERT IMAGE
+::: {layout-ncol="4"}
+![7-Segment Display showing 1'h0](images/1h0.JPG)
+
+![7-Segment Display showing 1'h1](images/1h1.JPG)
+
+![7-Segment Display showing 1'h2](images/1h2.JPG)
+
+![7-Segment Display showing 1'h3](images/1h3.JPG)
+
+![7-Segment Display showing 1'h4](images/1h4.JPG)
+
+![7-Segment Display showing 1'h5](images/1h5.JPG)
+
+![7-Segment Display showing 1'h6](images/1h6.JPG)
+
+![7-Segment Display showing 1'h7](images/1h7.JPG)
+
+![7-Segment Display showing 1'h8](images/1h8.JPG)
+
+![7-Segment Display showing 1'h9](images/1h9.JPG)
+
+![7-Segment Display showing 1'hA](images/1ha.JPG)
+
+![7-Segment Display showing 1'hb](images/1hb.JPG)
+
+![7-Segment Display showing 1'hC](images/1hc.JPG)
+
+![7-Segment Display showing 1'hd](images/1hd.JPG)
+
+![7-Segment Display showing 1'hE](images/1he.JPG)
+
+![7-Segment Display showing 1'hF](images/1hf.JPG)
+:::
 
 Below is a picture demonstrating `led[1]` being on when `s[3]` and `s[2]` is on, and `led[0]` being on with only `s[1]` being on. 
 
-INSERT IMAGE
+![Picture showing `led[1]` and `led[0]` on based on `s[3:0]` inputs](images/ledDemo.JPG)
 
 As a result, my design and project has met all the requirements for this lab. 
 
@@ -448,4 +485,4 @@ I like how clean the syntax of Claude is, and the variable names are informative
 Overall, I am very impressed with how well it worked, and I see a lot of potential for it to be used for the final project. 
 
 ## Hours Spent
-I spent 23 hours on this lab.
+I spent 24 hours on this lab.
