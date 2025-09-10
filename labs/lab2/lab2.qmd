@@ -655,80 +655,179 @@ As a result, my design and project has met all the requirements for this lab.
 
 ## AI Prototype
 
-### Prompt
+### Prompt 1
 To test how AI would do for this lab, I entered the following prompt to Claude AI:
 
 ```markdown
-Write SystemVerilog HDL to leverage the internal high speed oscillator in the Lattice UP5K FPGA and blink an LED at 2 Hz. Take full advantage of SystemVerilog syntax, for example, using logic instead of wire and reg.
+Write SystemVerilog HDL to time multiplex a single seven segment decoder (that decodes from four bits to a common anode seven segment display) to decode two sets of input bits and drive two sets of seven output bits.
 ```
-### AI Code
+#### AI Code
 As a result, it returned the following code:
 
 ```markdown
-// SystemVerilog LED Blinker for Lattice UP5K FPGA
-// Uses internal 48MHz oscillator to blink LED at 2Hz
-// Takes advantage of SystemVerilog features like logic, always_ff, etc.
-
-module led_blinker_up5k (
-    output logic led
+// Time-multiplexed seven segment decoder for two displays
+// Common anode seven segment display driver
+module seven_seg_decoder_mux (
+    input  logic        clk,           // Clock input
+    input  logic        rst_n,         // Active-low reset
+    input  logic [3:0]  digit0_in,     // First 4-bit input
+    input  logic [3:0]  digit1_in,     // Second 4-bit input
+    output logic [6:0]  seg0_out,      // Seven segment output for display 0 (a-g)
+    output logic [6:0]  seg1_out,      // Seven segment output for display 1 (a-g)
+    output logic        digit0_enable, // Enable signal for display 0
+    output logic        digit1_enable  // Enable signal for display 1
 );
 
-    // Internal oscillator clock signal
-    logic clk_48mhz;
+    // Internal signals
+    logic [3:0] mux_input;     // Multiplexed input to decoder
+    logic [6:0] decoded_seg;   // Output from seven segment decoder
+    logic       mux_select;    // Multiplexer select signal
+    logic [6:0] seg0_reg;      // Registered output for display 0
+    logic [6:0] seg1_reg;      // Registered output for display 1
     
-    // Counter for frequency division
-    // Need to divide 48MHz by 12M to get 4Hz toggle (2Hz blink)
-    // 12M = 12_000_000 requires 24 bits (2^24 = 16,777,216)
-    localparam int COUNTER_MAX = 12_000_000 - 1;
-    logic [23:0] counter;
+    // Clock divider for multiplexing (adjust counter width for desired refresh rate)
+    // With a typical 50MHz clock, this gives ~763Hz refresh per display
+    logic [15:0] clk_counter;
     
-    // LED output register
-    logic led_reg;
-    
-    // Instantiate the internal high-frequency oscillator
-    // SB_HFOSC is the Lattice UP5K primitive for the internal oscillator
-    SB_HFOSC #(
-        .CLKHF_DIV("0b00")  // 48MHz (divide by 1)
-    ) hfosc_inst (
-        .CLKHFPU(1'b1),     // Power up the oscillator
-        .CLKHFEN(1'b1),     // Enable the oscillator
-        .CLKHF(clk_48mhz)   // 48MHz clock output
-    );
-    
-    // Counter logic using SystemVerilog always_ff
-    always_ff @(posedge clk_48mhz) begin
-        if (counter >= COUNTER_MAX) begin
-            counter <= '0;
-            led_reg <= ~led_reg;  // Toggle LED every 0.25 seconds
+    // Clock divider and multiplexer select generation
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            clk_counter <= 16'd0;
+            mux_select <= 1'b0;
         end else begin
-            counter <= counter + 1'b1;
+            clk_counter <= clk_counter + 1;
+            // Toggle mux_select at MSB of counter
+            mux_select <= clk_counter[15];
         end
     end
     
-    // Assign LED output
-    assign led = led_reg;
+    // Input multiplexer
+    always_comb begin
+        case (mux_select)
+            1'b0: mux_input = digit0_in;
+            1'b1: mux_input = digit1_in;
+        endcase
+    end
+    
+    // Seven segment decoder (common anode - active low outputs)
+    // Segments: a=bit6, b=bit5, c=bit4, d=bit3, e=bit2, f=bit1, g=bit0
+    always_comb begin
+        case (mux_input)
+            4'h0: decoded_seg = 7'b1000000; // 0
+            4'h1: decoded_seg = 7'b1111001; // 1
+            4'h2: decoded_seg = 7'b0100100; // 2
+            4'h3: decoded_seg = 7'b0110000; // 3
+            4'h4: decoded_seg = 7'b0011001; // 4
+            4'h5: decoded_seg = 7'b0010010; // 5
+            4'h6: decoded_seg = 7'b0000010; // 6
+            4'h7: decoded_seg = 7'b1111000; // 7
+            4'h8: decoded_seg = 7'b0000000; // 8
+            4'h9: decoded_seg = 7'b0010000; // 9
+            4'hA: decoded_seg = 7'b0001000; // A
+            4'hB: decoded_seg = 7'b0000011; // b
+            4'hC: decoded_seg = 7'b1000110; // C
+            4'hD: decoded_seg = 7'b0100001; // d
+            4'hE: decoded_seg = 7'b0000110; // E
+            4'hF: decoded_seg = 7'b0001110; // F
+        endcase
+    end
+    
+    // Output registers - capture decoded value when corresponding digit is selected
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            seg0_reg <= 7'b1111111; // All segments off (common anode)
+            seg1_reg <= 7'b1111111;
+        end else begin
+            if (mux_select == 1'b0) begin
+                seg0_reg <= decoded_seg;
+            end else begin
+                seg1_reg <= decoded_seg;
+            end
+        end
+    end
+    
+    // Output assignments
+    assign seg0_out = seg0_reg;
+    assign seg1_out = seg1_reg;
+    
+    // Generate enable signals (active low for common anode displays)
+    // Only one display is enabled at a time for time multiplexing
+    assign digit0_enable = ~mux_select;  // Active when mux_select = 0
+    assign digit1_enable = mux_select;   // Active when mux_select = 1
 
 endmodule
 ```
 
-### Test in Radiant
-I then started a new project in Radiant and attempted to synthesize the code. It was unable to synthesize due to the following error:
+#### Test in Radiant
+I then started a new project in Radiant and attempted to synthesize the code. Claude was able to synthesize properly and it seems like it would actually work quite well, which is really impressive. By slightly modifying this code and adapting it for the purposes of this lab, it would be able to work successfully. 
+
+### Prompt 2
+
+I then ran the second prompt by also giving my lab 1 files as a sample to base off of. I used the following prompt:
 
 ```markdown
-ERROR <35901063> - c:/users/chris/onedrive/desktop/wu-e155-lab1/lab1_cw_aiprototype/source/impl_1/led_blinker_up5k.sv(29): instantiating unknown module SB_HFOSC. VERI-1063
-
-child process exited abnormally
-Done: error code 1
+Write SystemVerilog HDL to time multiplex a single seven segment decoder (that decodes from four bits to a common anode seven segment display) to decode two sets of input bits and drive two sets of seven output bits. Use the seven segment decoder and oscillator provided in the attached files.
 ```
 
-Claude AI proceded to make some changes but after synthesizing, it still returned the same error. 
+#### AI Code Result
+Claude gave me the following code. 
+
+```markdown
+module timemux_sevenSegmentDisplay (
+    input logic [3:0] input_a,    // First 4-bit input
+    input logic [3:0] input_b,    // Second 4-bit input
+    output logic [6:0] seg,       // Common seven segment output
+    output logic enable_a,        // Enable signal for display A (active low)
+    output logic enable_b         // Enable signal for display B (active low)
+);
+
+    // Internal signals
+    logic int_osc;
+    logic mux_select = 0;
+    logic [20:0] counter = 0;
+    logic [3:0] current_input;
+    
+    // Internal high-speed oscillator
+    HSOSC hf_osc (.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(int_osc));
+    
+    // Clock divider for multiplexing frequency
+    always_ff @(posedge int_osc) begin
+        counter <= counter + 1;
+        if (counter == 24_000) begin  // 1kHz multiplex frequency
+            mux_select <= ~mux_select;
+            counter <= 0;
+        end
+    end
+    
+    // Input multiplexer
+    always_comb begin
+        if (mux_select)
+            current_input = input_b;
+        else
+            current_input = input_a;
+    end
+    
+    // Generate enable signals (active low for common anode displays)
+    assign enable_a = mux_select;   // Active when mux_select is 0
+    assign enable_b = ~mux_select;  // Active when mux_select is 1
+    
+    // Instantiate the seven segment decoder
+    lab1_sevenSegmentDisplay decoder (
+        .s(current_input),
+        .seg(seg)
+    );
+
+endmodule
+```
+#### Radiant Test
+I created a new project in Radiant and was able to get the code to successfully synthesize. I also assigned pins and programmed the code onto my board and it worked successfully. 
 
 ### Reflection
-After comparing my code to the one that Claude produced, I was able to see the potential of coding with AI. Claude got everything in the module correct with the exception of the HSOSC part. Although this is the most important part and Claude got it wrong, it was very close to being right, and small tweaks and guidance in the right direction on to properly use the HSOSC library would result in code that would work. 
+I am overall very impressed with how AI performed. I was able to run the code on my board and get it to work as expected, showing the power of using AI to write quick and effective code. I learned that Claude is able to write much cleaner code than me, avoiding redundancies and having everything fit in just one module. While this is helpful here, it might not be helpful for testbenching purposes, but I think if I gave AI the right prompts, it would modify my code to make it more testbench friendly and also write the testbenches for me. 
 
-I like how clean the syntax of Claude is, and the variable names are informative. The added comments are also quite helpful to understand the logic and structure of the code. With some support on the library, coding with an AI can be very powerful, as it is able to do the bulk of the work for us quickly and efficiently. Small tweaks for more nuanced things like specific libraries is a reasonable fix for me and an easy one to do, to be able to take advantage of the power of AI for the rest of the code. To do this, I could either change the code manually, or create more specific prompts to tell it how to use the library in a way that will work. 
+What I learned here, as well as with the AI prototype of Lab 1 is that if we guide the AI to where we want it to be, it will be able to achieve what we want. If we don't guide it at all, it will do a fairly good job, but it won't work and it won't be perfect. But if we guide it in the right direction, it will be able to correct those small details that are wrong and be able to run correctly on the board.
 
-Overall, I am very impressed with how well it worked, and I see a lot of potential for it to be used for the final project. 
+Once again, I am very impressed with Claude and I can see how useful it will be for the final project. 
 
 ## Hours Spent
-I spent 14 hours on this lab.
+I spent 15 hours on this lab.
