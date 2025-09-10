@@ -1,3 +1,0 @@
----
-title: 'Multiplexed 7-Segment Display'
----
