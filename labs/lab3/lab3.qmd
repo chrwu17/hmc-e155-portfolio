@@ -24,9 +24,10 @@ The objective of this lab is to build upon the work done in Lab 2, by adding the
 ### Design
 
 #### Synchronizing asynchronous inputs
-
+Metastability occurs with this keypad when key inputs occur too close to a rising edge of the clock, causing asynchrony. To fix this, we can use a two stage synchronizer, which involves using two flip flops to synchronize our keypad input and have a stable input going into the FSM. This is done in this lab by synchronizing my column inputs, with the `synchronizer` module. 
 
 #### Accounting for switch bouncing
+All mechanical switches have a phenomenom called switch bouncing, where the input signals by the switch oscillate quickly between on and off as the button is getting clicked. This occurs until the button is fully clicked and the input signal becomes stable. To account for this and not read mistake one key press for multiple key presses, I used SystemVerilog code to add a delay between reading inputs in my FSM. This will prevent a single key input being mistaken as multiple inputs. 
 
 #### Block Diagram
 My approach to this lab consists of eight different modules. It was designed to have many modules to make testing the functionality of each function of this lab easily. An overarching top level module called `lab3_cw`, which will be programmed to the board, and seven submodules `synchronizer`, `keypadFSM`, `keypad`, `sevenSegDigits`, `timeMultiplexer`, `sevenSegMux` and `sevenSegDisplay`. The `synchronizer` submodule will synchronize my keypad inputs using a simple two stage synchronizer with two flip flops. The `keypadFSM` submodule is an FSM that controls how to detect keypad presses and what to do with it. It also implements switch debouncing. The `keypad` submodule helps decode what number corresponds to each row and column on the 4 x 4 keypad. The `sevenSegDigits` submodule is responsible for shifting the digits on the dual 7-segment display based on what the FSM tells it to do. The `timeMultiplexer` submodule is the same as in lab 2, and is responsible for controlling which common anode gets turned on in the dual 7-segment display. The `sevenSegMux` submodule is the same as in lab 2, and is a mux that controls which four bit input will be fed into `sevenSegmentDisplay` based on the enable, `signal`, which is given by `timeMultiplexer`. The `sevenSegmentDisplay` submodule is the same one that was used in Lab 1 and 2, which will control the outputs on the 7-segment display, displaying the hexadecimal value provided by the dip switches, `s1[3:0]` and `s2[3:0]`.  It was designed to switch at 500 Hz, which should be high enough to not be noticeable to the human eye. It will also output a signal to guide which input should be used by the `sevenSegmentDisplay` module, which is controlled by `sevenSegMux`.  The top level `lab3_cw` calls upon all these submodules as well as the `HSOSC` submodule, which takes advantage of the onboard 48 MHz clock on the FPGA. Below is the block diagram I used to create this project:
@@ -39,7 +40,31 @@ The `synchronizer` submodule was a very simple design. It consisted of a two sta
 Below is the code block that was used for this submodule:
 
 ```markdown
+// Christian Wu
+// chrwu@g.hmc.edu
+// 09/13/25
 
+// This module is a simple two-stage synchronizer to safely bring an asynchronous input signal
+// into the clock domain of the provided clock signal. This helps to prevent metastability issues.
+
+module synchronizer (
+    input logic clk,
+    input logic reset,
+    input logic [3:0] in,
+    output logic [3:0] out);
+
+    logic [3:0] mid;
+
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            mid <= 4'b0000;
+            out <= 4'b0000;
+        end else begin
+        mid <= in;
+        out <= mid;
+    end
+    end
+endmodule
 ```
 #### Keypad FSM Design
 
