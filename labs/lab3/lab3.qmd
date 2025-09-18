@@ -32,7 +32,7 @@ All mechanical switches have a phenomenom called switch bouncing, where the inpu
 #### Block Diagram
 My approach to this lab consists of eight different modules. It was designed to have many modules to make testing the functionality of each function of this lab easily. An overarching top level module called `lab3_cw`, which will be programmed to the board, and seven submodules `synchronizer`, `keypadFSM`, `keypad`, `sevenSegDigits`, `timeMultiplexer`, `sevenSegMux` and `sevenSegDisplay`. The `synchronizer` submodule will synchronize my keypad inputs using a simple two stage synchronizer with two flip flops. The `keypadFSM` submodule is an FSM that controls how to detect keypad presses and what to do with it. It also implements switch debouncing. The `keypad` submodule helps decode what number corresponds to each row and column on the 4 x 4 keypad. The `sevenSegDigits` submodule is responsible for shifting the digits on the dual 7-segment display based on what the FSM tells it to do. The `timeMultiplexer` submodule is the same as in lab 2, and is responsible for controlling which common anode gets turned on in the dual 7-segment display. The `sevenSegMux` submodule is the same as in lab 2, and is a mux that controls which four bit input will be fed into `sevenSegmentDisplay` based on the enable, `signal`, which is given by `timeMultiplexer`. The `sevenSegmentDisplay` submodule is the same one that was used in Lab 1 and 2, which will control the outputs on the 7-segment display, displaying the hexadecimal value provided by the dip switches, `s1[3:0]` and `s2[3:0]`.  It was designed to switch at 500 Hz, which should be high enough to not be noticeable to the human eye. It will also output a signal to guide which input should be used by the `sevenSegmentDisplay` module, which is controlled by `sevenSegMux`.  The top level `lab3_cw` calls upon all these submodules as well as the `HSOSC` submodule, which takes advantage of the onboard 48 MHz clock on the FPGA. Below is the block diagram I used to create this project:
 
-![Lab 3 Block Diagram](images/blockDiagram.jpeg)
+![Lab 3 Block Diagram](images/blockDiagram.png)
 
 #### synchronizer Design
 The `synchronizer` submodule was a very simple design. It consisted of a two stage synchronizer by utilizing two flip flops to synchronize our asynchronous inputs. 
@@ -73,7 +73,7 @@ Some mechanical switches only bounce for 10 - 20 ms, so my debouncing method acc
 
 Here is my FSM State Transition Diagram:
 
-![FSM State Transition Diagram](images/FSM.jpeg)
+![FSM State Transition Diagram](images/FSM.png)
 
 Here is a state transition table for switching states:
 
@@ -87,22 +87,22 @@ Here is a state transition table for switching states:
 | **S2**        | `!(buttonPressed && oneButtonPressed)`              | **S3**     |
 | **S3**        | `buttonPressed && oneButtonPressed`                 | **S10**    |
 | **S3**        | `!(buttonPressed && oneButtonPressed)`              | **S0**     |
-| **S4**        | `!buttonPressed \|\| !oneButtonPressed`             | **S1**     |
+| **S4**        | `!buttonPressed || !oneButtonPressed`               | **S1**     |
 | **S4**        | `counter >= 50`                                     | **S5**     |
 | **S4**        | `buttonPressed && oneButtonPressed && counter < 50` | **S4**     |
 | **S5**        | `!originalStillPressed`                             | **S1**     |
 | **S5**        | `originalStillPressed`                              | **S5**     |
-| **S6**        | `!buttonPressed \|\| !oneButtonPressed`             | **S2**     |
+| **S6**        | `!buttonPressed || !oneButtonPressed`               | **S2**     |
 | **S6**        | `counter >= 50`                                     | **S7**     |
 | **S6**        | `buttonPressed && oneButtonPressed && counter < 50` | **S6**     |
 | **S7**        | `!originalStillPressed`                             | **S2**     |
 | **S7**        | `originalStillPressed`                              | **S7**     |
-| **S8**        | `!buttonPressed \|\| !oneButtonPressed`             | **S3**     |
+| **S8**        | `!buttonPressed || !oneButtonPressed`               | **S3**     |
 | **S8**        | `counter >= 50`                                     | **S9**     |
 | **S8**        | `buttonPressed && oneButtonPressed && counter < 50` | **S8**     |
 | **S9**        | `!originalStillPressed`                             | **S3**     |
 | **S9**        | `originalStillPressed`                              | **S9**     |
-| **S10**       | `!buttonPressed \|\| !oneButtonPressed`             | **S0**     |
+| **S10**       | `!buttonPressed || !oneButtonPressed`               | **S0**     |
 | **S10**       | `counter >= 50`                                     | **S11**    |
 | **S10**       | `buttonPressed && oneButtonPressed && counter < 50` | **S10**    |
 | **S11**       | `!originalStillPressed`                             | **S0**     |
@@ -1305,7 +1305,7 @@ After finishing with the design, I was able to wire my board according to the sc
 
 Below is a video demonstrating this lab working successfully: 
 
-![Successful Keypad Decoder](images/example1.jpeg)
+![Successful Keypad Decoder](images/demo.MOV)
 
 As a result, my design and project has met all the requirements for this lab. 
 
