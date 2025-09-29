@@ -1,3 +1,66 @@
 ---
 title: 'Lab 4: Digital Audio'
+author: 'Christian Wu'
+date: '09/23/25'
+format:
+    html:
+        code-links:
+         - text: "Lab 4 Github Repo"
+           href: https://github.com/chrwu17/e155-lab4
+           icon: github
+        other-links:
+         - text: "E155 Course Website: Lab 4"
+           href: "https://hmc-e155.github.io/lab/lab4/"
 ---
+
+## Introduction
+The goal of this lab is to use our STM32L432KC to drive audio on a speaker and be able to play music. This will be done using an LM386 audio amplifier and a potentiometer to control the volume, as well as software using C.
+
+## MCU Design
+
+### Objective
+The objective of this lab is to understand how to read the STM32L432KC to drive different clocks and play different frequencies of sound on our MCU. Using the data sheet to understand how to drive our MCU is key here. 
+
+### Design
+
+
+### Hardware
+
+#### Design and Schematic
+After finishing with testing, I can now build my hardware and program my MCU. I only have one pin output for my speaker and I am using PA6 since it utilizes TIM16 in AF14. Below, is my schematic:
+
+![Lab 4 Schematic](images/schematic.png)
+
+**LM386 Low Voltage Audio Power Amplifier**
+
+
+
+**Potentiometer**
+
+
+#### Results
+
+
+## AI Prototype
+
+### Prompt
+To test how AI would do for this lab, I entered the following prompt to ChatGPT:
+
+```markdown
+What timers should I use on the STM32L432KC to generate frequencies ranging from 220Hz to 1kHz? What’s the best choice of timer if I want to easily connect it to a GPIO pin? What formulae are relevant, and what registers next to be set to configure them properly?
+```
+#### AI Code
+As a result, it returned the following code:
+
+```markdown
+
+```
+
+#### Test in Segger
+
+
+### Reflection
+
+
+## Hours Spent
+I spent 15 hours on this lab.
