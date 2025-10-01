@@ -290,7 +290,7 @@ window.Quarto = {
 <p>To design with software for this lab, I utilized two different timers. I used TIM16 due to its PWM functionality to output the correct frequency, and used TIM6, due to its simple design to set a delay between when the frequencies should be switched to play the notes for the right amount of time. For both of these timers, I used MSI as my system clock as it is the default clock running at 4 MHz. For both TIM16 and TIM6, I scaled down the timers to a slower frequency to be able to run the range of frequencies that I wanted, and the range of delays that I wanted.</p>
 <section id="headers" class="level4">
 <h4 class="anchored" data-anchor-id="headers">Headers</h4>
-<p>To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For RCC, FLASH, and GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:</p>
+<p>To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:</p>
 <section id="tim16-header-file" class="level5">
 <h5 class="anchored" data-anchor-id="tim16-header-file">TIM16 Header File</h5>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>// Christian Wu</span>
@@ -555,7 +555,7 @@ window.Quarto = {
 </section>
 <section id="main-code-file" class="level4">
 <h4 class="anchored" data-anchor-id="main-code-file">Main Code File</h4>
-<p>To tie everything together and actually run my code on the MCU, I had a <code>main.c</code> file. I first configured my FLASH and two timers, and then used for loops to play each of the songs, Fur Elise and Twinkle Twinkle Little Star. I utilized my <code>setPWM</code> function to change frequencies after <code>setDelay</code> finished. My code is as shows below:</p>
+<p>To tie everything together and actually run my code on the MCU, I had a <code>main.c</code> file. I first configured my two timers, and then used for loops to play each of the songs, Fur Elise and Twinkle Twinkle Little Star. I utilized my <code>setPWM</code> function to change frequencies after <code>setDelay</code> finished. My code is as shows below:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>// Christian Wu</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>// chrwu@g.hmc.edu</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>// 09/19/25</span>
@@ -595,26 +595,25 @@ window.Quarto = {
 <span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>int main(void) {</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    configureFlash();</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    configureTIM16(); // PWM</span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    configureTIM6(); // Delay</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="in">    pinMode(6, GPIO_ALT);</span></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="in">    GPIO-&gt;AFRL &amp;= ~(0xF &lt;&lt; 24);    // Clear bits [27:24] for pin 6</span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="in">    GPIO-&gt;AFRL |= (14 &lt;&lt; 24);      // Set to AF14 for TIM16_CH1</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="in">    for (int i = 0; i &lt; sizeof(notes)/sizeof(notes[0]); i++){</span></span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="in">        setPWM(notes[i][0], 50);</span></span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="in">        setDelay(notes[i][1]);</span></span>
-<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="in">    for (int i = 0; i &lt; sizeof(ttls_notes)/sizeof(ttls_notes[0]); i++){</span></span>
-<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a><span class="in">        setPWM(ttls_notes[i][0], 50);</span></span>
-<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a><span class="in">        setDelay(ttls_notes[i][1]);</span></span>
-<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
-<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    configureTIM16(); // PWM</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    configureTIM6(); // Delay</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="in">    pinMode(6, GPIO_ALT);</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="in">    GPIO-&gt;AFRL &amp;= ~(0xF &lt;&lt; 24);    // Clear bits [27:24] for pin 6</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="in">    GPIO-&gt;AFRL |= (14 &lt;&lt; 24);      // Set to AF14 for TIM16_CH1</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="in">    for (int i = 0; i &lt; sizeof(notes)/sizeof(notes[0]); i++){</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="in">        setPWM(notes[i][0], 50);</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="in">        setDelay(notes[i][1]);</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a><span class="in">    for (int i = 0; i &lt; sizeof(ttls_notes)/sizeof(ttls_notes[0]); i++){</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="in">        setPWM(ttls_notes[i][0], 50);</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a><span class="in">        setDelay(ttls_notes[i][1]);</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
 <section id="hardware" class="level3">
@@ -733,7 +732,8 @@ window.Quarto = {
 </section>
 <section id="demo-video" class="level5">
 <h5 class="anchored" data-anchor-id="demo-video">Demo Video</h5>
-<p>Here is a video demoing my project working successfully.</p>
+<p>Here is a video demoing my project working successfully:</p>
+<div class="quarto-video ratio ratio-16x9"><iframe data-external="1" src="https://www.youtube.com/embed/PtFiQHdMgJ4" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
 <p>As a result, my design and project has met all the requirements for this lab.</p>
 </section>
 </section>
