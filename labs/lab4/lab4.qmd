@@ -25,7 +25,7 @@ The objective of this lab is to understand how to read the STM32L432KC to drive 
 To design with software for this lab, I utilized two different timers. I used TIM16 due to its PWM functionality to output the correct frequency, and used TIM6, due to its simple design to set a delay between when the frequencies should be switched to play the notes for the right amount of time. For both of these timers, I used MSI as my system clock as it is the default clock running at 4 MHz. For both TIM16 and TIM6, I scaled down the timers to a slower frequency to be able to run the range of frequencies that I wanted, and the range of delays that I wanted. 
 
 #### Headers
-To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For RCC, FLASH, and GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:
+To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:
 
 ##### TIM16 Header File
 ```markdown
@@ -287,7 +287,7 @@ void setDelay(int ms) {
 ```
 
 #### Main Code File
-To tie everything together and actually run my code on the MCU, I had a `main.c` file. I first configured my FLASH and two timers, and then used for loops to play each of the songs, Fur Elise and Twinkle Twinkle Little Star. I utilized my `setPWM` function to change frequencies after `setDelay` finished. My code is as shows below:
+To tie everything together and actually run my code on the MCU, I had a `main.c` file. I first configured my two timers, and then used for loops to play each of the songs, Fur Elise and Twinkle Twinkle Little Star. I utilized my `setPWM` function to change frequencies after `setDelay` finished. My code is as shows below:
 
 ```markdown
 // Christian Wu
@@ -329,7 +329,6 @@ const int ttls_notes[][2] = {
 
 
 int main(void) {
-    configureFlash();
     configureTIM16(); // PWM
     configureTIM6(); // Delay
 
@@ -373,52 +372,54 @@ I chose to use a 2k Ohm Potentiometer as it would lower the volume of the speake
 After creating my Segger project and uploading the code to my MCU, I was successfully able to play Fur Elise and Twinkle Twinkle Little Star. To make sure that my frequency outputs were accurate to within 1% error, I used an oscilloscope to measure the actual output frequencies for 220, 300, 400, 500, 600, 700, 800, 900, and 1000 Hz. Below are the oscilloscope traces and the percent error, which is within 1%:
 
 ##### 220 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 220 Hz, I got 219 Hz, which corresponds to a 0.45 % error. 
+Using an oscilloscope to measure the actual output frequency of 220 Hz, I got 219 Hz, which corresponds to a 0.45 % error. Theoretically, I should be getting ARR to be 1000000/220 - 1 = 4544. Thus, the output frequency should be 1000000/4545 = 220.02 Hz, which is 0.01% error.
 
 ![220 Hz Oscilloscope Trace](images/220.jpeg)
 
 ##### 300 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 300 Hz, I got 299 Hz, which corresponds to a 0.33 % error. 
+Using an oscilloscope to measure the actual output frequency of 300 Hz, I got 299 Hz, which corresponds to a 0.33 % error. Theoretically, I should be getting ARR to be 1000000/300 - 1 = 3332. Thus, the output frequency should be 1000000/3333 = 300.03 Hz, which is 0.01% error.
 
 ![300 Hz Oscilloscope Trace](images/300.jpeg)
 
 ##### 400 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 400 Hz, I got 397 Hz, which corresponds to a 0.75 % error. 
+Using an oscilloscope to measure the actual output frequency of 400 Hz, I got 397 Hz, which corresponds to a 0.75 % error. Theoretically, I should be getting ARR to be 1000000/400 - 1 = 2499. Thus, the output frequency should be 1000000/2500 = 400.00 Hz, which is 0.00% error.
 
 ![400 Hz Oscilloscope Trace](images/400.jpeg)
 
 ##### 500 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 500 Hz, I got 500 Hz, which corresponds to a 0 % error. 
+Using an oscilloscope to measure the actual output frequency of 500 Hz, I got 500 Hz, which corresponds to a 0 % error. Theoretically, I should be getting ARR to be 1000000/500 - 1 = 1999. Thus, the output frequency should be 1000000/2000 = 500.00 Hz, which is 0.00% error.
 
 ![500 Hz Oscilloscope Trace](images/500.jpeg)
 
 ##### 600 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 600 Hz, I got 595 Hz, which corresponds to a 0.83 % error. 
+Using an oscilloscope to measure the actual output frequency of 600 Hz, I got 595 Hz, which corresponds to a 0.83 % error. Theoretically, I should be getting ARR to be 1000000/600 - 1 = 1665. Thus, the output frequency should be 1000000/1666 = 600.24 Hz, which is 0.04% error.
 
 ![600 Hz Oscilloscope Trace](images/600.jpeg)
 
 ##### 700 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 700 Hz, I got 699 Hz, which corresponds to a 0.14 % error. 
+Using an oscilloscope to measure the actual output frequency of 700 Hz, I got 699 Hz, which corresponds to a 0.14 % error. Theoretically, I should be getting ARR to be 1000000/700 - 1 = 1427. Thus, the output frequency should be 1000000/1428 = 700.28 Hz, which is 0.04% error.
 
 ![700 Hz Oscilloscope Trace](images/700.jpeg)
 
 ##### 800 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 800 Hz, I got 806 Hz, which corresponds to a 0.75 % error. 
+Using an oscilloscope to measure the actual output frequency of 800 Hz, I got 806 Hz, which corresponds to a 0.75 % error. Theoretically, I should be getting ARR to be 1000000/800 - 1 = 1249. Thus, the output frequency should be 1000000/1250 = 800.00 Hz, which is 0.00% error.
 
 ![800 Hz Oscilloscope Trace](images/800.jpeg)
 
 ##### 900 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 900 Hz, I got 893 Hz, which corresponds to a 0.78 % error. 
+Using an oscilloscope to measure the actual output frequency of 900 Hz, I got 893 Hz, which corresponds to a 0.78 % error. Theoretically, I should be getting ARR to be 1000000/900 - 1 = 1110. Thus, the output frequency should be 1000000/1111 = 900.09 Hz, which is 0.01% error.
 
 ![900 Hz Oscilloscope Trace](images/900.jpeg)
 
 ##### 1000 Hz Measured Frequency
-Using an oscilloscope to measure the actual output frequency of 1000 Hz, I got 1000 Hz, which corresponds to a 0 % error. 
+Using an oscilloscope to measure the actual output frequency of 1000 Hz, I got 1000 Hz, which corresponds to a 0 % error. Theoretically, I should be getting ARR to be 1000000/1000 - 1 = 999. Thus, the output frequency should be 1000000/1000 = 1000.00 Hz, which is 0.00% error.
 
 ![1000 Hz Oscilloscope Trace](images/1000.jpeg)
 
 ##### Demo Video
-Here is a video demoing my project working successfully.
+Here is a video demoing my project working successfully:
+
+{{< video https://youtu.be/PtFiQHdMgJ4 >}}
 
 As a result, my design and project has met all the requirements for this lab. 
 
@@ -543,7 +544,7 @@ Do you want me to write you a minimal STM32CubeIDE C setup code snippet that out
 ```
 
 ### Reflection
-
+AI worked pretty well here as it suggested coorrrect steps on how to use TIM2 to set this up. However, for this lab, TIM2 seems unnecessary as I do not need it to be 32 bits, so TIM16 would be my personal choice. I am sure that if I told ChatGPT to use TIM16, it would also give me accurate steps on how to set up TIM16. The calculations that ChatGPT provided for frequency using PSC and ARR all are accurate, and I used the same calculations when doing the lab myself too. Even without attachiing the reference manual, it seems very accurate, but uploading it makes it a lot more accurate and would definitely help with time saving when looking for the right sections or not understanding how to interpret or use certain parts of the reference manual. ChatGPT can be a great time saving tool for the final project to determine what registers I need to use in my MCU and how to set it up, guiding me to the right spots on the reference manual for reference. 
 
 ## Hours Spent
 I spent 18 hours on this lab.
