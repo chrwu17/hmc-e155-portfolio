@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.22">
+<meta name="generator" content="quarto-1.8.21">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -74,10 +74,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-cd7454b418030687c631a6a7286fbe16.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ea1d7ac60288e0f1efdbc993fd8432ae.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -290,7 +290,7 @@ window.Quarto = {
 <p>To design with software for this lab, I utilized two different timers. I used TIM16 due to its PWM functionality to output the correct frequency, and used TIM6, due to its simple design to set a delay between when the frequencies should be switched to play the notes for the right amount of time. For both of these timers, I used MSI as my system clock as it is the default clock running at 4 MHz. For both TIM16 and TIM6, I scaled down the timers to a slower frequency to be able to run the range of frequencies that I wanted, and the range of delays that I wanted.</p>
 <section id="headers" class="level4">
 <h4 class="anchored" data-anchor-id="headers">Headers</h4>
-<p>To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:</p>
+<p>To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For RCC, FLASH, GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:</p>
 <section id="tim16-header-file" class="level5">
 <h5 class="anchored" data-anchor-id="tim16-header-file">TIM16 Header File</h5>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>// Christian Wu</span>
