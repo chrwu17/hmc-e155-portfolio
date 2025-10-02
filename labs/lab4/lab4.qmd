@@ -25,7 +25,7 @@ The objective of this lab is to understand how to read the STM32L432KC to drive 
 To design with software for this lab, I utilized two different timers. I used TIM16 due to its PWM functionality to output the correct frequency, and used TIM6, due to its simple design to set a delay between when the frequencies should be switched to play the notes for the right amount of time. For both of these timers, I used MSI as my system clock as it is the default clock running at 4 MHz. For both TIM16 and TIM6, I scaled down the timers to a slower frequency to be able to run the range of frequencies that I wanted, and the range of delays that I wanted. 
 
 #### Headers
-To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:
+To be able to utilize the TIM16 and TIM6 timers, I needed to create header files to include the memory locations of each register. For RCC, FLASH, GPIO, I used the preexisting ones provided in class. The TIM16 and TIM6 header files are as shown below:
 
 ##### TIM16 Header File
 ```markdown
