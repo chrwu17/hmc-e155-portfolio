@@ -2,10 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.21">
+<meta name="generator" content="quarto-1.8.22">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Christian Wu">
+<meta name="dcterms.date" content="2025-10-04">
 
 <title>Lab 5: Interrupts – E155 Portfolio</title>
 <style>
@@ -19,6 +21,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -37,10 +74,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ea1d7ac60288e0f1efdbc993fd8432ae.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-cd7454b418030687c631a6a7286fbe16.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -154,8 +191,28 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#quadrature-encoder" id="toc-quadrature-encoder" class="nav-link" data-scroll-target="#quadrature-encoder">Quadrature Encoder</a></li>
+  <li><a href="#mcu-design" id="toc-mcu-design" class="nav-link" data-scroll-target="#mcu-design">MCU Design</a>
+  <ul class="collapse">
+  <li><a href="#objective" id="toc-objective" class="nav-link" data-scroll-target="#objective">Objective</a></li>
+  <li><a href="#interrupt-design" id="toc-interrupt-design" class="nav-link" data-scroll-target="#interrupt-design">Interrupt Design</a></li>
+  <li><a href="#code-design" id="toc-code-design" class="nav-link" data-scroll-target="#code-design">Code Design</a></li>
+  <li><a href="#hardware" id="toc-hardware" class="nav-link" data-scroll-target="#hardware">Hardware</a></li>
+  </ul></li>
+  <li><a href="#ai-prototype" id="toc-ai-prototype" class="nav-link" data-scroll-target="#ai-prototype">AI Prototype</a>
+  <ul class="collapse">
+  <li><a href="#prompt" id="toc-prompt" class="nav-link" data-scroll-target="#prompt">Prompt</a></li>
+  <li><a href="#reflection" id="toc-reflection" class="nav-link" data-scroll-target="#reflection">Reflection</a></li>
+  </ul></li>
+  <li><a href="#hours-spent" id="toc-hours-spent" class="nav-link" data-scroll-target="#hours-spent">Hours Spent</a></li>
+  </ul>
+<div class="quarto-other-links"><h2>Other Links</h2><ul><li><a href="https://hmc-e155.github.io/lab/lab5/"><i class="bi bi-link-45deg"></i>E155 Course Website: Lab 5</a></li></ul></div><div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="https://github.com/chrwu17/e155-lab5"><i class="bi bi-github"></i>Lab 5 Github Repo</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -169,7 +226,19 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Christian Wu </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 4, 2025</p>
+    </div>
+  </div>
   
     
   </div>
@@ -179,8 +248,375 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The goal of this lab is to apply our learning about interrupts to detect quadrature encoder pulses and display it as motor velocity, by using our MCU, hall effect sensors, and interrupt code.</p>
+</section>
+<section id="quadrature-encoder" class="level2">
+<h2 class="anchored" data-anchor-id="quadrature-encoder">Quadrature Encoder</h2>
+<p>Quadrature encoders are used to measure the angles of motors, by using two sensors that are 90 degrees apart. For our lab, we are using the <a href="https://hmc-e155.github.io/assets/lab/25GA370.pdf">25GA370 Motor</a>, which uses hall effect sensors and magnets to be able to detect this. To determine the speed of the motor, we can make some calculations. On the datasheet for the motor, it says that there are 408 motor Pulses Per Rotation/Revolution (PRR). We want to display the motor speed in units of revolutions per second, so we can do that by finding the pulses per second that we measure from the quadrature encoders, and divide that by the PRR. Since the sensors of the motor are 90 degrees apart, we can measure the time difference between the readings of the two sensors, and multiply that by 4 to get a full pulse. To determine how long that pulse took, we can multiply by our sampling frequency and divide that by our time difference between our two motors. The image below shows the math in more detail:</p>
+</section>
+<section id="mcu-design" class="level2">
+<h2 class="anchored" data-anchor-id="mcu-design">MCU Design</h2>
+<section id="objective" class="level3">
+<h3 class="anchored" data-anchor-id="objective">Objective</h3>
+<p>The objective of this lab is to be able to apply our knowledge of interrupts to be able to calculate the speed of a motor, which is equipped with quadrature encoders.</p>
+</section>
+<section id="interrupt-design" class="level3">
+<h3 class="anchored" data-anchor-id="interrupt-design">Interrupt Design</h3>
+<p>For the interrupts, I designed my code so that an interrupt would be triggered on a rising or falling edge of either <code>ASIGNAL_PIN</code> or <code>BSIGNAL_PIN</code>. Once the interrupt was triggered, the interrupt handler would determine which signal triggered the interrupt, and whether the value of both signals is the same. If they are the same, it would save the time difference between the two signals into <code>deltaT</code>. Then, it would reset the timer, and return from the interrupt. This can be seen in my interrupt design flowchart below:</p>
+<section id="interrupt-design-flowchart" class="level4">
+<h4 class="anchored" data-anchor-id="interrupt-design-flowchart">Interrupt Design Flowchart</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/interruptFlowchart.png" class="img-fluid figure-img"></p>
+<figcaption>Interrupt Design Flowchart for Lab 5</figcaption>
+</figure>
+</div>
+</section>
+<section id="interrupts-vs-polling" class="level4">
+<h4 class="anchored" data-anchor-id="interrupts-vs-polling">Interrupts vs Polling</h4>
+<p>For this lab, our code checks for changes in our inputs <code>ASIGNAL_PIN</code> and <code>BSIGNAL_PIN</code> very often and quickly. With code that uses polling, checking signals and processing, along with the calculations for speed are all done within the main function in the while loop, and this could lead to inaccurate or delayed outputs. This is due to the fact that we might be checking for inputs faster than our MCU can do all the processing and calculations, causing our speed outputs to not reflect the current inputs. As a result, we can use interrupts, which stop the main loop from continuously checking for new inputs until all our processing and calculations are done, ensuring that our output results are accurate and reflect the signal inputs into the MCU with no delay. The math below shows how polling will miss many clock edges if used for this lab:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/polling.png" class="img-fluid figure-img"></p>
+<figcaption>Polling flaws for Lab 5</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="code-design" class="level3">
+<h3 class="anchored" data-anchor-id="code-design">Code Design</h3>
+<p>To design with software for this lab, I utilized two different timers. I used TIM2 as my delay timer, and used TIM6 as my counter timer. For both of these timers, I used MSI as my system clock as it is the default clock running at 4 MHz. For both TIM2 and TIM6, I scaled down the timers to a slower frequency to be able to run how I wanted it.</p>
+<section id="headers-and-c-files-for-supporting-files" class="level4">
+<h4 class="anchored" data-anchor-id="headers-and-c-files-for-supporting-files">Headers and C Files for Supporting Files</h4>
+<p>For this lab, we were now able to utilize the CMSIS headers, meaning that we do not have to make our own header files. For FLASH, GPIO, RCC, and USART header and c files, I took them directly from the <a href="https://github.com/HMC-E155/tutorial-interrupts">E155 Interrupt Tutorial Repository</a>. For the TIM file, I also took the header file from the Interrupt Tutorial Repository, but slightly modified <code>STM32L432KC_TIM.c</code> when initiliazing each of my timers, as I wanted them to run at different frequencies. I wanted to run my delay timer at 1 kHz for simplicity, and run my counter timer at 1 MHz due to the need to check for signals on the motor much faster and capture every edge for the highest resolution output. Thus, the code for the <code>STM32L432KC_TIM.c</code> file is below:</p>
+<section id="tim-c-file" class="level5">
+<h5 class="anchored" data-anchor-id="tim-c-file">TIM C File</h5>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>// Christian Wu</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>// chrwu@g.hmc.edu</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>// 09/30/25</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>// Taken from the E155 Course Website and Modified</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>// STM32F401RE_TIM.c</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>// TIM functions</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>#include "STM32L432KC_TIM.h"</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>#include "STM32L432KC_RCC.h"</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>void initDelayTIM(TIM_TypeDef * TIMx){</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  // Set prescaler to give 1 ms time base</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  uint32_t psc_div = (uint32_t) ((SystemCoreClock/1e3));</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  // Set prescaler division factor</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;PSC = (psc_div - 1);</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  // Generate an update event to update prescaler value</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;EGR |= 1;</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  // Enable counter</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;CR1 |= 1; // Set CEN = 1</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>void initCounterTIM(TIM_TypeDef * TIMx){</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  // Set prescaler to give 1 ms time base</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  uint32_t psc_div = (uint32_t) ((SystemCoreClock/1e6));</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  // Set prescaler division factor</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;PSC = (psc_div - 1);</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  // Generate an update event to update prescaler value</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;EGR |= 1;</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  // Enable counter</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;CR1 |= 1; // Set CEN = 1</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>void delay_millis(TIM_TypeDef * TIMx, uint32_t ms){</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;ARR = ms;// Set timer max count</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;EGR |= 1;     // Force update</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;SR &amp;= ~(0x1); // Clear UIF</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  TIMx-&gt;CNT = 0;      // Reset count</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  while(!(TIMx-&gt;SR &amp; 1)); // Wait for UIF to go high</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="main-code-file" class="level4">
+<h4 class="anchored" data-anchor-id="main-code-file">Main Code File</h4>
+<p>To tie everything together and actually run my code on the MCU, I had a <code>main.h</code> header file, and <code>main.c</code> file. I configured my timers, GPIO, and interrupts, and wrote my interrupt handling, and my speed calculations and printing. My code is as shows below:</p>
+<section id="main.h-code" class="level5">
+<h5 class="anchored" data-anchor-id="main.h-code">main.h code</h5>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>// Christian Wu</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>// chrwu@g.hmc.edu</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>// 10/01/25</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>// Header file for main.c</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>#ifndef MAIN_H</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>#define MAIN_H</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>#include "lib/STM32L432KC.h"</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>#include <span class="dt">&lt;</span><span class="kw">stm32l432xx.h</span><span class="dt">&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>#include "lib/STM32L432KC_FLASH.h"</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>#include "lib/STM32L432KC_GPIO.h"</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>#include "lib/STM32L432KC_RCC.h"</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>#include "lib/STM32L432KC_TIM.h"</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>#define ASIGNAL_PIN PA9</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>#define BSIGNAL_PIN PA6</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>#define DELAY_TIM TIM2</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>#define COUNTER_TIM TIM6</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>#endif</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="main.c-code" class="level5">
+<h5 class="anchored" data-anchor-id="main.c-code">main.c code</h5>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>// Christian Wu</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>// chrwu@g.hmc.edu</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>// 09/30/25</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>#include "../lib/main.h"</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>int direction;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>int deltaT;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>float speed;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>// Function used by printf to send characters to the laptop - Taken from E155 Website</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>int _write(int file, char *ptr, int len) {</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  int i = 0;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  for (i = 0; i &lt; len; i++) {</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    ITM_SendChar((*ptr++));</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  return len;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>int main(void) {</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="in">    // Enable A Signal Pin</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="in">    gpioEnable(GPIO_PORT_A);</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="in">    pinMode(ASIGNAL_PIN, GPIO_INPUT);</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="in">    GPIOA-&gt;PUPDR |= _VAL2FLD(GPIO_PUPDR_PUPD9, 0b01); // Set PA9 as pull-up</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="in">    // Enable B Signal Pin</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="in">    pinMode(BSIGNAL_PIN, GPIO_INPUT);</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="in">    GPIOA-&gt;PUPDR |= _VAL2FLD(GPIO_PUPDR_PUPD6, 0b01); // Set PA6 as pull-up</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="in">    // Initialize timer</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="in">    RCC-&gt;APB1ENR1 |= RCC_APB1ENR1_TIM2EN;</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="in">    initDelayTIM(DELAY_TIM);</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="in">    RCC-&gt;APB1ENR1 |= RCC_APB1ENR1_TIM6EN;</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="in">    initCounterTIM(COUNTER_TIM);</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="in">    // TODO</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="in">    // 1. Enable SYSCFG clock domain in RCC</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="in">    RCC-&gt;APB2ENR |= RCC_APB2ENR_SYSCFGEN;</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="in">    // 2. Configure EXTICR for the input button interrupt</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="in">    SYSCFG-&gt;EXTICR[2] |= _VAL2FLD(SYSCFG_EXTICR3_EXTI9, 0b000);</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a><span class="in">    SYSCFG-&gt;EXTICR[1] |= _VAL2FLD(SYSCFG_EXTICR2_EXTI6, 0b000);</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="in">    // Enable interrupts globally</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="in">    __enable_irq();</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="in">    // TODO: Configure interrupt for falling edge of GPIO pin for button</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="in">    // 1. Configure mask bit</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a><span class="in">    EXTI-&gt;IMR1 |= (1 &lt;&lt;gpioPinOffset(ASIGNAL_PIN));</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="in">    EXTI-&gt;IMR1 |= (1 &lt;&lt;gpioPinOffset(BSIGNAL_PIN));</span></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="in">    // 2. Enable rising edge trigger</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="in">    EXTI-&gt;RTSR1 |= (1 &lt;&lt; gpioPinOffset(ASIGNAL_PIN));</span></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="in">    EXTI-&gt;RTSR1 |= (1 &lt;&lt; gpioPinOffset(BSIGNAL_PIN));</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="in">    // 3. Enable falling edge trigger</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="in">    EXTI-&gt;FTSR1 |= (1 &lt;&lt; gpioPinOffset(ASIGNAL_PIN));</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="in">    EXTI-&gt;FTSR1 |= (1 &lt;&lt; gpioPinOffset(BSIGNAL_PIN));</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="in">    // 4. Turn on EXTI interrupt in NVIC_ISER</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="in">    NVIC-&gt;ISER[0] |= (1 &lt;&lt; EXTI9_5_IRQn);</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a><span class="in">    while(1){ </span></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="in">        if (direction) {</span></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="in">            printf("Direction: Clockwise \n");</span></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a><span class="in">        } </span></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a><span class="in">        else {</span></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a><span class="in">            printf("Direction: Counter Clockwise \n");</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a><span class="in">        }</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a><span class="in">        speed = 1000000.0 / (408.0*4.0*deltaT);</span></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a><span class="in">        printf("Speed: %f revolutions/second \n", speed);</span></span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="in">        delay_millis(DELAY_TIM, 200);</span></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>// TODO: What is the right name for the IRQHandler?</span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>void EXTI9_5_IRQHandler(void){</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>    int a_reading = digitalRead(ASIGNAL_PIN);</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>    int b_reading = digitalRead(BSIGNAL_PIN);</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>    // Check that ASIGNAL_PIN was what triggered our interrupt</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>    if (EXTI-&gt;PR1 &amp; (1 &lt;&lt; 9)){</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>        // If so, clear the interrupt (NB: Write 1 to reset.)</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>        EXTI-&gt;PR1 |= (1 &lt;&lt; 9);</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a><span class="in">        // If ASIGNAL_PIN and BSIGNAL_PIN are the same, return the difference between the two signals</span></span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a><span class="in">        if((a_reading &amp;&amp; b_reading) || (!a_reading &amp;&amp; !b_reading)) {</span></span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a><span class="in">            deltaT = COUNTER_TIM-&gt;CNT;</span></span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a><span class="in">            direction = 0;</span></span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a><span class="in">        }</span></span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a><span class="in">        COUNTER_TIM-&gt;CNT = 0;</span></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a><span class="in">    // Check that BSIGNAL_PIN was what triggered our interrupt</span></span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a><span class="in">    if (EXTI-&gt;PR1 &amp; (1 &lt;&lt; 6)){</span></span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a><span class="in">        // If so, clear the interrupt (NB: Write 1 to reset.)</span></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="in">        EXTI-&gt;PR1 |= (1 &lt;&lt; 6);</span></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a><span class="in">        // If ASIGNAL_PIN and BSIGNAL_PIN are the same, return the difference between the two signals</span></span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a><span class="in">        if((a_reading &amp;&amp; b_reading) || (!a_reading &amp;&amp; !b_reading)) {</span></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a><span class="in">            deltaT = COUNTER_TIM-&gt;CNT;</span></span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a><span class="in">            direction = 1;</span></span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a><span class="in">        }</span></span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a><span class="in">        COUNTER_TIM-&gt;CNT = 0;</span></span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+</section>
+<section id="hardware" class="level3">
+<h3 class="anchored" data-anchor-id="hardware">Hardware</h3>
+<section id="design-and-schematic" class="level4">
+<h4 class="anchored" data-anchor-id="design-and-schematic">Design and Schematic</h4>
+<p>I can now build my hardware and program my MCU. I am using PA6, and PA9 for my two quadrature encoder signals, onboard 5V and ground to power the quadrature encoder, and an external power supply varying from 0 to 12 V to power the motor.</p>
+<p>Below, is my schematic:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/schematic.png" class="img-fluid figure-img"></p>
+<figcaption>Lab 5 Schematic</figcaption>
+</figure>
+</div>
+</section>
+<section id="results" class="level4">
+<h4 class="anchored" data-anchor-id="results">Results</h4>
+<p>After creating my Segger project and uploading the code to my MCU, I was successfully able to display the direction and speed of the motor. I was able to confirm this by using an oscilloscope to verify that my speed output was correct. To do this, I hooked up both my <code>ASIGNAL_PIN</code> and <code>BSIGNAL_PIN</code> to the oscilloscope and found the time difference between the two signals. I used a spreadsheet to convert that time difference into speed by doing the following formula: speed = 1000000 / (deltaT * 4 * PPR), where speed is in revolutions per second, deltaT is in s, and PPR was 408 pulses per revolution.</p>
+<p>Supplying 1.18 V to the motor, the oscilloscope showed a <code>deltaT</code> of 2250, which is a speed of 0.272, and my code said it was 0.262, which is a 3.7% error.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/1vOscope.jpeg" class="img-fluid figure-img"></p>
+<figcaption>1.18 Volt Oscilloscope Trace</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/1vResult.jpeg" class="img-fluid figure-img"></p>
+<figcaption>1.18 Volt MCU Reading</figcaption>
+</figure>
+</div>
+<p>Supplying 4.34 V to the motor, the oscilloscope showed a <code>deltaT</code> of 580, which is a speed of 1.056, and my code said it was 1.060, which is a 0.379% error.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/4vOscope.jpeg" class="img-fluid figure-img"></p>
+<figcaption>4.34 Volt Oscilloscope Trace</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/4vResult.jpeg" class="img-fluid figure-img"></p>
+<figcaption>4.34 Volt MCU Reading</figcaption>
+</figure>
+</div>
+<p>As a result, my design and project has met all the requirements for this lab.</p>
+<p>Supplying 8 V to the motor, the oscilloscope showed a <code>deltaT</code> of 310, which is a speed of 1.977, and my code said it was 2.0, which is a 1.16% error.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/8vOscope.jpeg" class="img-fluid figure-img"></p>
+<figcaption>8 Volt Oscilloscope Trace</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/8vResult.jpeg" class="img-fluid figure-img"></p>
+<figcaption>8 Volt MCU Reading</figcaption>
+</figure>
+</div>
+<p>Supplying 12.12 V to the motor, the oscilloscope showed a <code>deltaT</code> of 205, which is a speed of 2.98, and my code said it was 3.08, which is a 3.36% error.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/12vOscope.jpeg" class="img-fluid figure-img"></p>
+<figcaption>12.12 Volt Oscilloscope Trace</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/12vResult.jpeg" class="img-fluid figure-img"></p>
+<figcaption>12.12 Volt MCU Reading</figcaption>
+</figure>
+</div>
+<p>At 0 V to the motor, my MCU correctly displayed 0 revs/sec</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/0.png" class="img-fluid figure-img"></p>
+<figcaption>0 Volt MCU Reading</figcaption>
+</figure>
+</div>
+<p>As a result, my design and project has met all the requirements for this lab.</p>
+</section>
+</section>
+</section>
+<section id="ai-prototype" class="level2">
+<h2 class="anchored" data-anchor-id="ai-prototype">AI Prototype</h2>
+<section id="prompt" class="level3">
+<h3 class="anchored" data-anchor-id="prompt">Prompt</h3>
+<p>To test how AI would do for this lab, I entered the following prompt to ChatGPT:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Write me interrupt handlers to interface with a quadrature encoder. I’m using the STM32L432KC, what pins should I connect the encoder to in order to allow it to easily trigger the interrupts?</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="ai-response" class="level4">
+<h4 class="anchored" data-anchor-id="ai-response">AI Response</h4>
+<p>As a result, it returned the following response:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Great choice of MCU—this is straightforward on the L432KC.</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>Which pins to use</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>You have two good patterns depending on whether you’ll decode in software (GPIO EXTI interrupts) or offload it to a timer (hardware encoder mode). Both are easy on the NUCLEO-L432KC pinout.</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>A) Software decode via GPIO EXTI (both edges)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>Pick any pair that maps to distinct EXTI lines. These work well and are also on Arduino headers:</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>PA0 → Channel A (EXTI0)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>PA1 → Channel B (EXTI1)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>Alternatives (equally good):</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>PA6 (EXTI6) / PA7 (EXTI7)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>PB6 (EXTI6) / PB7 (EXTI7)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>(Optional index Z): PC13 (EXTI13) is perfect for the index pulse.</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>Why these? They give you clean EXTI lines and, if you later switch to timer encoder mode, the same pins map neatly to timer channels (see below).</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>B) Hardware decode with a timer in Encoder Interface mode (recommended)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>Use a general-purpose timer with CH1/CH2 on adjacent pins:</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>TIM2: PA0 = TIM2_CH1, PA1 = TIM2_CH2 (AF1)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>TIM3: PA6 = TIM3_CH1, PA7 = TIM3_CH2 (AF2)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>TIM4: PB6 = TIM4_CH1, PB7 = TIM4_CH2 (AF2)</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>This lets the timer do the A/B decoding in hardware. You can still enable a periodic/overflow interrupt or poll TIMx-&gt;CNT.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="reflection" class="level3">
+<h3 class="anchored" data-anchor-id="reflection">Reflection</h3>
+<p>For this prompt, AI did quite well in telling me what pins to use and why, so the hardware advice was spot on. However, it also gave me code to use, which used hardware abstraction layers (HAL). However, our approach for this lab was using CMSIS headers. I had never seen HAL before, so I also gave chatGPT my code for this lab and told it to compare between the two approaches to this lab. With this, it was able to give me good insight on the pros and cons of using each approach and how to navigate it. I think this is a strong suit of AI, as the MCU has so many tools and abilities that we have not learned about. AI is able to break down these difficult concepts in easy to digest ways with various examples. This will be really useful for the project as we work through understanding new features and how to go about it, especially with troubleshooting and setup.</p>
+</section>
+</section>
+<section id="hours-spent" class="level2">
+<h2 class="anchored" data-anchor-id="hours-spent">Hours Spent</h2>
+<p>I spent 15 hours on this lab.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
