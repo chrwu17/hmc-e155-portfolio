@@ -353,7 +353,7 @@ int main(void) {
 ### Hardware
 
 #### Design and Schematic
-After finishing with testing, I can now build my hardware and program my MCU. I only have one pin output for my speaker and I am using PA6 since it utilizes TIM16 in AF14. 
+I can now build my hardware and program my MCU. I only have one pin output for my speaker and I am using PA6 since it utilizes TIM16 in AF14. 
 
 ![Alternate functions AF8 to AF15](images/af.png)
 
