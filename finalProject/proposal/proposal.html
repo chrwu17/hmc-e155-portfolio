@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Lab 6: The Internet of Things and Serial Peripheral Interface – E155 Portfolio</title>
+<title>MechaCrypt: A Solenoid-Based Encrypted Data Transmission System – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -41,6 +41,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -165,15 +168,30 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction-and-project-overview" id="toc-introduction-and-project-overview" class="nav-link active" data-scroll-target="#introduction-and-project-overview">Introduction and Project Overview</a></li>
+  <li><a href="#fpga-use" id="toc-fpga-use" class="nav-link" data-scroll-target="#fpga-use">FPGA Use</a>
+  <ul class="collapse">
+  <li><a href="#fpga-resource-usage" id="toc-fpga-resource-usage" class="nav-link" data-scroll-target="#fpga-resource-usage">FPGA Resource Usage</a></li>
+  </ul></li>
+  <li><a href="#mcu-use" id="toc-mcu-use" class="nav-link" data-scroll-target="#mcu-use">MCU Use</a></li>
+  <li><a href="#bill-of-materials" id="toc-bill-of-materials" class="nav-link" data-scroll-target="#bill-of-materials">Bill of Materials</a></li>
+  <li><a href="#project-performance-specs" id="toc-project-performance-specs" class="nav-link" data-scroll-target="#project-performance-specs">Project Performance Specs</a></li>
+  <li><a href="#project-timeline-task-allocation" id="toc-project-timeline-task-allocation" class="nav-link" data-scroll-target="#project-timeline-task-allocation">Project Timeline &amp; Task Allocation</a></li>
+  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
+  </ul>
+<div class="quarto-other-links"><h2>Other Links</h2><ul><li><a href="https://hmc-e155.github.io/resources/"><i class="bi bi-file-earmark-check"></i>FPGA &amp; MCU Documentation</a></li><li><a href="https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf"><i class="bi bi-file-earmark-pdf"></i>ESP82866 Documentation</a></li><li><a href="https://www.espressif.com/sites/default/files/documentation/esp8266-technical_reference_en.pdf"><i class="bi bi-file-earmark-pdf"></i>ESP82866 Reference Manual</a></li><li><a href="/docs/NIST.FIPS.197-upd1.pdf"><i class="bi bi-file-earmark-pdf"></i>AES Standard: NIST FIPS 197</a></li><li><a href="/docs/AEDIKO_Relay_Specs.png"><i class="bi bi-file-earmark-image"></i>AEDIKO 12V Relay Module Specs</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Lab 6: The Internet of Things and Serial Peripheral Interface</h1>
+<h1 class="title">MechaCrypt: A Solenoid-Based Encrypted Data Transmission System</h1>
 </div>
 
 
@@ -190,8 +208,214 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction-and-project-overview" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-and-project-overview">Introduction and Project Overview</h2>
+<p>The goal of the project is to demonstrate serial data transfer through a mechanical actuation mechanism rather than traditional electrical signaling. Mechanical motion, driven by solenoids, relays, and limit switches, replaces voltage as the medium for communication across nine parallel channels, with one serving as the CLK for synchronization and eight for data bits, transmitting one byte per cycle in simplex mode. Each relay energizes a solenoid when its input is HIGH, pressing a limit switch on the receiver side to register a HIGH signal. For secure communication, the sender encrypts messages using AES-128, and the receiver decrypts the transmitted bytes to reconstruct the plaintext. Communication between sender and receiver is coordinated through a web app: the user types or uploads a message, where the ESP8266/ESP32 sends/receives a request to/from the MCU–FPGA system for encryption, transmission, decryption, and final display of the recovered message on the receiver’s web page.</p>
+</section>
+<section id="fpga-use" class="level2">
+<h2 class="anchored" data-anchor-id="fpga-use">FPGA Use</h2>
+<p>The project uses two FPGAs, one on each side of the communication system. Each FPGA handles AES-128 encryption and decryption while interfacing directly with the mechanical bus. The sender FPGA receives plaintext and encryption key from the MCU, encrypts it, and performs bit-banging to maintain synchronization and ensure that a complete byte is transmitted every cycle. The receiver FPGA reads each incoming byte, decrypts it, and sends the plaintext to the MCU for display. It also manages switch input synchronization through debouncing to ensure clean and reliable signal detection. <strong>The new FPGA functions are highlighted below:</strong></p>
+<ul>
+<li>AES-128 decryption according to the NIST FIPS 197 standard</li>
+<li>Bit-banging/hardware synchronization</li>
+<li>data transfer indicators (Mainly LEDs showing channel status, i.e, HIGH/LOW)</li>
+</ul>
+<p>The FPGAs communicate with the MCUs through SPI and interface with the mechanical bus using a custom serial bit driver that handles all data transmission and input reception. The transfer rate of the bits will be set depending on how we synchonize the receiving end. Bit transfer is handled by the clock, and we can change the clock speed to achieve synchronization, and this will in turn affect how fast we can send bits across.</p>
+<section id="fpga-resource-usage" class="level3">
+<h3 class="anchored" data-anchor-id="fpga-resource-usage">FPGA Resource Usage</h3>
+<p>The FPGAs in this setup will perform AES-128 encryption and decryption, both of which rely heavily on combinational logic, resulting in high LUT usage. Most of the resources are consumed by the iterative round operations, key expansion, and storing S-box substitution tables, with additional LUTs used by the FSMs that will control the actuators and debounce switch inputs. The UPduino has built-in macros for SPI, but serial communication can also use some resources. From research on the implementation of these functions, we estimated a total of <strong>~3500 LUTs</strong>. Since each UPDuino (iCE40UP5K) provides <strong>5,280 logic cells</strong>, this remains within a safe utilization range. For on-board storage, only about <strong>5 kB</strong> of the available <strong>128 kB</strong> memory is required for S-box tables and related data. The tasks stated above are split between 2 FPGAs, therefore, we stay even further from the resource limits of the boards.</p>
+</section>
+</section>
+<section id="mcu-use" class="level2">
+<h2 class="anchored" data-anchor-id="mcu-use">MCU Use</h2>
+<p>The project uses two MCUs, one for each side of the system. They serve as the main interface for web communication and text encoding, converting messages into byte data that the FPGA can process. MCUs are ideal for this role due to their large on-board memory, which allows them to handle larger text data. Each MCU also participates in the encryption and decryption process, managing the exchange of keys and ciphertext/plaintext with the FPGAs. Additionally, the MCUs will control all system indicators and feedback mechanisms that help monitor the efficiency of the system. <strong>The new MCU functions are shown below:</strong></p>
+<ul>
+<li>ASCII encoding/decoding</li>
+<li>Feedback &amp; Monitoring:
+<ul>
+<li>Validate if data received matches the intended message (transferred message)</li>
+<li>Track clock (clk) speed as well as data transfer speed.</li>
+<li>Determine progress of data transfer</li>
+</ul></li>
+<li>Fault report and handling:
+<ul>
+<li>stop transfer and report when received data ≠ sent data</li>
+<li>System kill switch (master stop)</li>
+</ul></li>
+</ul>
+</section>
+<section id="bill-of-materials" class="level2">
+<h2 class="anchored" data-anchor-id="bill-of-materials">Bill of Materials</h2>
+<table class="caption-top table">
+<caption>BOM for Final Project</caption>
+<thead>
+<tr class="header">
+<th>Part Name</th>
+<th>Part Number</th>
+<th>Quantity</th>
+<th>Vendor</th>
+<th>Price</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>12V Relay Module</td>
+<td>SRD-12VDC-SL-C</td>
+<td>10</td>
+<td>AEDIKO</td>
+<td>13.16</td>
+<td><a href="https://www.amazon.com/dp/B0972R8QZS/ref=twister_B0B8HF14T2?_encoding=UTF8&amp;th=1">Link</a></td>
+</tr>
+<tr class="even">
+<td>12V Solenoid</td>
+<td>Z24G50031OJX</td>
+<td>9</td>
+<td>TEHAUX</td>
+<td>36.54</td>
+<td><a href="https://www.amazon.com/dp/B0BRYJS7HD?psc=1&amp;ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_1">Link</a></td>
+</tr>
+<tr class="odd">
+<td>Roller Lever Arm Micro Limit Switch</td>
+<td>KW12-3</td>
+<td>10</td>
+<td>HiLetgo</td>
+<td>6.57</td>
+<td><a href="https://www.amazon.com/dp/B07X142VGC?psc=1&amp;ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_2">Link</a></td>
+</tr>
+<tr class="even">
+<td>FPGA</td>
+<td>Upduino v3.1</td>
+<td>2</td>
+<td>Upduino</td>
+<td>Stockroom</td>
+<td>N/A</td>
+</tr>
+<tr class="odd">
+<td>MCU</td>
+<td>STM32L432KC</td>
+<td>2</td>
+<td>STM</td>
+<td>Stockroom</td>
+<td>N/A</td>
+</tr>
+<tr class="even">
+<td>Metal Rods</td>
+<td>N/A</td>
+<td>9</td>
+<td>N/A</td>
+<td>Stockroom</td>
+<td>N/A</td>
+</tr>
+<tr class="odd">
+<td>ESP8266</td>
+<td>ESP-WROOM-02</td>
+<td>2</td>
+<td>Edwin Robotics</td>
+<td>Stockroom</td>
+<td>N/A</td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>$56.27</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="project-performance-specs" class="level2">
+<h2 class="anchored" data-anchor-id="project-performance-specs">Project Performance Specs</h2>
+<p>We expect the toughest stage to be the mechanical bus. Synchronizing all actuators and making sure that the receiver samples at the correct time will be the biggest challenge. Since the clock is also mechanical, the whole system is susceptible to any faults from that channel. Below are the main performance specs and secondary specs to check-off to verify the process and completeness of the project:</p>
+<ul>
+<li><strong>Main performance spec:</strong>
+<ul class="task-list">
+<li><label><input type="checkbox">Send a single word (16 characters/letters maximum)</label></li>
+</ul></li>
+<li><strong>Secondary performace specs:</strong>
+<ul class="task-list">
+<li><label><input type="checkbox">Text messages are correctly sent/received between the ESP8266 to the MCU</label></li>
+<li><label><input type="checkbox">MCU correctly encodes &amp; decodes the received word in ASCII</label></li>
+<li><label><input type="checkbox">MCU-FPGA encryption/decryption modules communicate and perform as expected</label></li>
+<li><label><input type="checkbox">9 mechanical channels properly synchronized between the two sides.</label></li>
+<li><label><input type="checkbox">Status and progress LEDs respond as expected</label></li>
+<li><label><input type="checkbox">System stops immediately if received data is different from sent data.</label></li>
+<li><label><input type="checkbox">All 8 data buses are read synchronously</label></li>
+<li><label><input type="checkbox">Able to receive &amp; display at least 3 letters in a second i.e minimum 24bps transfer speed<br>
+</label></li>
+</ul></li>
+<li><strong>Strech performance specs:</strong>
+<ul class="task-list">
+<li><label><input type="checkbox">Able to send multiple words over</label></li>
+<li><label><input type="checkbox">Able to send words from a .txt file uploaded from the web app</label></li>
+<li><label><input type="checkbox">Faster transfer speeds (around 8 letters in a second, 64bps)</label></li>
+<li><label><input type="checkbox">Emoji handling</label></li>
+</ul></li>
+</ul>
+</section>
+<section id="project-timeline-task-allocation" class="level2">
+<h2 class="anchored" data-anchor-id="project-timeline-task-allocation">Project Timeline &amp; Task Allocation</h2>
+<ul>
+<li><strong>By 10/26/2025:</strong> Have the proposal and project approved and verified to begin working (Both).</li>
+<li><strong>Week of 10/27/2025:</strong> Submit purchase order. Develop and test MCU-FPGA encryption module (Josaphat) and MCU driver for ASCII encoding/decoding and web requests (Chistian).</li>
+<li><strong>Week of 11/03/2025:</strong> Machine and cutdown metal rods. Start assembling and testing the electronics and mechanical system. Troubleshoot annd resolve any issues errors (Both).</li>
+<li><strong>Week of 11/10/2025:</strong> Develop and test MCU-FPGA decryption module (Josaphat) and MCU code for system monitoring and fault detection (Christian).</li>
+<li><strong>Week of 11/17/2025:</strong> Preliminary testing of the full system. Connecting all parts and running all systems to check performance and troubleshoot errors (Both).</li>
+<li><strong>Week of 11/24/2025:</strong> Begin preliminary project report. Debug if any errors are still ongoing. If complete, look at implementing some strech goals or aesthetic modificatons. (Both)</li>
+<li><strong>Week of 12/01/2025:</strong> Finalize report. Perfom final system shakedown to validate all performance specs and prepare checkoff sheet. PROJECT DEMO!!! (Both)</li>
+</ul>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<p>The appendix contains images and diagrams highlighing the full setup and other considerations to ensure the project goes as planned:</p>
+<p>All the relevant elements defined in the description above and will be connected together following the communication protocols and setup in <a href="#fig-sysDiagram" class="quarto-xref">Figure&nbsp;1</a> below:</p>
+<div id="fig-sysDiagram" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sysDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/topBlockDiagram.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Main Block Diagram."><img src="docs/topBlockDiagram.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sysDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Main Block Diagram.
+</figcaption>
+</figure>
+</div>
+<p>The actuation block requires different modules and setup necessary for it to work as expected. The relay module specifications show the mentioned NO and NC connection modes. <a href="#fig-actBlock" class="quarto-xref">Figure&nbsp;2</a> below shows the signals as well as voltage and circuit configurations:</p>
+<div id="fig-actBlock" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-actBlock-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/actuationBlock.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Hardware Actuation Block Diagram"><img src="docs/actuationBlock.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-actBlock-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Hardware Actuation Block Diagram
+</figcaption>
+</figure>
+</div>
+<div id="fig-actDiagram" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-actDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="docs/actuationCircuit.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-actDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Hardware Actuation 3D Visualization
+</figcaption>
+</figure>
+</div>
+<p>The team has a fall-back plan in case new errors and challenges come up along the way to ensure that at least the main idea of transfering encrypted data mechanically still stands.</p>
+<div id="fig-fallback" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-fallback-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="docs/contingency.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fallback-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Fallback Plan
+</figcaption>
+</figure>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -594,6 +818,38 @@ ul.task-list li input[type="checkbox"] {
   });
   </script>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
