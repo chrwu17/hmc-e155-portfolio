@@ -25,6 +25,10 @@ website:
             text: Lab 6
           - href: labs/lab7/lab7.qmd
             text: Lab 7
+      - text: Final Project
+        menu:
+          - href: finalProject/proposal/proposal.qmd
+            text: Project Proposal
       - href: resources.qmd
         text: Resources
       - href: blog.qmd
