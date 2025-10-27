@@ -256,7 +256,7 @@ ul.task-list li input[type="checkbox"] {
 <td>SRD-12VDC-SL-C</td>
 <td>10</td>
 <td>AEDIKO</td>
-<td>13.16</td>
+<td>13.20</td>
 <td><a href="https://www.amazon.com/dp/B0972R8QZS/ref=twister_B0B8HF14T2?_encoding=UTF8&amp;th=1">Link</a></td>
 </tr>
 <tr class="even">
@@ -264,7 +264,7 @@ ul.task-list li input[type="checkbox"] {
 <td>Z24G50031OJX</td>
 <td>9</td>
 <td>TEHAUX</td>
-<td>36.54</td>
+<td>28.26</td>
 <td><a href="https://www.amazon.com/dp/B0BRYJS7HD?psc=1&amp;ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_1">Link</a></td>
 </tr>
 <tr class="odd">
@@ -272,16 +272,16 @@ ul.task-list li input[type="checkbox"] {
 <td>KW12-3</td>
 <td>10</td>
 <td>HiLetgo</td>
-<td>6.57</td>
+<td>6.60</td>
 <td><a href="https://www.amazon.com/dp/B07X142VGC?psc=1&amp;ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_2">Link</a></td>
 </tr>
 <tr class="even">
 <td>LCD Display with I2C Adapter</td>
-<td>LCD1602</td>
+<td>LCD2004</td>
 <td>10</td>
 <td>SunFounder</td>
-<td>10.96</td>
-<td><a href="amazon.com/gp/product/B019K5X53O/ref=ox_sc_act_title_1?smid=ADHH624DX2Q66&amp;psc=1">Link</a></td>
+<td>14.26</td>
+<td><a href="https://www.amazon.com/dp/B01GPUMP9C?ref=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&amp;ref_=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&amp;social_share=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&amp;titleSource=true&amp;th=1">Link</a></td>
 </tr>
 <tr class="odd">
 <td>FPGA</td>
@@ -320,7 +320,7 @@ ul.task-list li input[type="checkbox"] {
 <td></td>
 <td></td>
 <td></td>
-<td><strong>$67.23</strong></td>
+<td><strong>$62.32</strong></td>
 <td></td>
 </tr>
 </tbody>
@@ -330,20 +330,31 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="project-performance-specs">Project Performance Specs</h2>
 <p>We expect the toughest stage to be the mechanical bus. Synchronizing all actuators and making sure that the receiver samples at the correct time will be the biggest challenge. Since the clock is also mechanical, the whole system is susceptible to any faults from that channel. Below are the main performance specs and secondary specs to check-off to verify the process and completeness of the project:</p>
 <ul>
-<li><strong>Main performance spec:</strong>
+<li><strong>Main Performance Specs:</strong>
 <ul class="task-list">
-<li><label><input type="checkbox">Send a single word (16 characters/letters maximum)</label></li>
-</ul></li>
-<li><strong>Secondary performace specs:</strong>
-<ul class="task-list">
+<li><label><input type="checkbox">Send 16 ASCII characters</label></li>
+<li><label><input type="checkbox">Send multiple blocks of messages in 128 bit blocks</label></li>
+<li><label><input type="checkbox">Hardware actuation system functions correctly</label></li>
+<li><label><input type="checkbox">Website UI correctly takes in user input and correctly displays output message for receiver</label></li>
+<li><label><input type="checkbox">Status and progress LCD respond as expected</label></li>
+<li><label><input type="checkbox">TRNG generates random key</label></li>
+<li><label><input type="checkbox">Random key is transmited to receiver over SPI backhaul</label></li>
+<li><label><input type="checkbox">SPRAM correctly stores multiple 128 bit ciphertext blocks</label></li>
+<li><label><input type="checkbox">FPGA pulls data from SPRAM 8 bits at a time to be sent over mechanical actuation system</label></li>
 <li><label><input type="checkbox">Text messages are correctly sent/received between the ESP8266 to the MCU</label></li>
 <li><label><input type="checkbox">MCU correctly encodes &amp; decodes the received word in ASCII</label></li>
 <li><label><input type="checkbox">MCU-FPGA encryption/decryption modules communicate and perform as expected</label></li>
 <li><label><input type="checkbox">9 mechanical channels properly synchronized between the two sides.</label></li>
-<li><label><input type="checkbox">Status and progress LCD respond as expected</label></li>
 <li><label><input type="checkbox">System stops immediately if received data is different from sent data.</label></li>
 <li><label><input type="checkbox">All 8 data buses are read synchronously</label></li>
 <li><label><input type="checkbox">Able to receive &amp; display at least 3 letters in a second i.e minimum 24bps transfer speed</label></li>
+</ul></li>
+<li><strong>Project Midpoint Demo Specs:</strong> At Minimum, the following must be completed:
+<ul class="task-list">
+<li><label><input type="checkbox">Hardware actuation system functions as expected</label></li>
+<li><label><input type="checkbox">ESP8266 Website UI functions and can take in user messages and display output messages</label></li>
+<li><label><input type="checkbox">LCD Display displays text</label></li>
+<li><label><input type="checkbox">RTL &amp; Code has made progress</label></li>
 </ul></li>
 </ul>
 </section>
