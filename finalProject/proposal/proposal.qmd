@@ -25,11 +25,9 @@ The goal of the project is to demonstrate serial data transfer through a mechani
 
 ## FPGA Use
 
-The project uses two FPGAs, one on each side of the communication system. Each FPGA handles AES-128 encryption and decryption while interfacing directly with the mechanical bus. The sender FPGA receives plaintext and encryption key from the MCU, encrypts it, and performs bit-banging to maintain synchronization and ensure that a complete byte is transmitted every cycle. The receiver FPGA reads each incoming byte, decrypts it, and sends the plaintext to the MCU for display. It also manages switch input synchronization through debouncing to ensure clean and reliable signal detection. **The new FPGA functions are highlighted below:**
+The project uses two FPGAs, one on each side of the communication system. Each FPGA handles AES-128 encryption and decryption while interfacing directly with the mechanical bus. The sender FPGA receives plaintext and encryption key from the MCU, encrypts it, and performs bit-banging to maintain synchronization and ensure that a complete byte is transmitted every cycle. The receiver FPGA reads each incoming byte, decrypts it, and sends the plaintext to the MCU for display. It also manages switch input synchronization through debouncing to ensure clean and reliable signal detection. **The new FPGA function is highlighted below:**
 
-- AES-128 decryption according to the NIST FIPS 197 standard
-- Bit-banging/hardware synchronization
-- data transfer indicators (Mainly LEDs showing channel status, i.e, HIGH/LOW)
+- Using SPRAM to store encrypted ciphertext, and then pulling from the SPRAM 8 bits at a time to transfer via hardware actuation.
 
 The FPGAs communicate with the MCUs through SPI and interface with the mechanical bus using a custom serial bit driver that handles all data transmission and input reception. The transfer rate of the bits will be set depending on how we synchonize the receiving end. Bit transfer is handled by the clock, and we can change the clock speed to achieve synchronization, and this will in turn affect how fast we can send bits across.
 
@@ -39,29 +37,27 @@ The FPGAs in this setup will perform AES-128 encryption and decryption, both of 
 
 ## MCU Use
 
-The project uses two MCUs, one for each side of the system. They serve as the main interface for web communication and text encoding, converting messages into byte data that the FPGA can process. MCUs are ideal for this role due to their large on-board memory, which allows them to handle larger text data. Each MCU also participates in the encryption and decryption process, managing the exchange of keys and ciphertext/plaintext with the FPGAs. Additionally, the MCUs will control all system indicators and feedback mechanisms that help monitor the efficiency of the system. **The new MCU functions are shown below:**
+The project uses two MCUs, one for each side of the system. They serve as the main interface for web communication and text encoding, converting messages into byte data that the FPGA can process. MCUs are ideal for this role due to their large on-board memory, which allows them to handle larger text data. Each MCU also participates in the encryption and decryption process, managing the exchange of keys and ciphertext/plaintext with the FPGAs. Additionally, the MCUs will control all system indicators and feedback mechanisms that help monitor the efficiency of the system. **The new MCU function is shown below:**
 
-- ASCII encoding/decoding
-- Feedback & Monitoring:
-    - Validate if data received matches the intended message (transferred message)
-    - Track clock (clk) speed as well as data transfer speed.
-    - Determine progress of data transfer
-- Fault report and handling:
-    - stop transfer and report when received data ≠ sent data
-    - System kill switch (master stop)
+- Using the TRNG to randomly generate keys for encryption. We will send these random keys to the receiver via SPI so that it can decrypt the message correctly. 
+
+## Non Trivial Hardware
+
+This project will implement the use of a LCD Display, which will track the current progress of the transaction and display to the user. When the MCU first gets the message from the user, it will send via SPI the total message length and key to the receiver FPGA. The receiver FPGA will send the total message length to the receiver MCU. So as data transfer is occurring via hardware actuation, the MCU can calculate what percentage of data has been transferred and display that on the LCD Display via I2C. 
 
 ## Bill of Materials
 
 | Part Name                           | Part Number         | Quantity  | Vendor         | Price     | Link                                                                                            |
 |-------------------------------------|---------------------|-----------|----------------|-----------|-------------------------------------------------------------------------------------------------|
-| 12V Relay Module                    | SRD-12VDC-SL-C      | 10        | AEDIKO         | 13.16     | [Link](https://www.amazon.com/dp/B0972R8QZS/ref=twister_B0B8HF14T2?_encoding=UTF8&th=1)         |
-| 12V Solenoid                        | Z24G50031OJX        | 9         | TEHAUX         | 36.54     | [Link](https://www.amazon.com/dp/B0BRYJS7HD?psc=1&ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_1) |
-| Roller Lever Arm Micro Limit Switch | KW12-3              | 10        | HiLetgo        | 6.57      | [Link](https://www.amazon.com/dp/B07X142VGC?psc=1&ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_2) |
+| 12V Relay Module                    | SRD-12VDC-SL-C      | 10        | AEDIKO         | 13.20     | [Link](https://www.amazon.com/dp/B0972R8QZS/ref=twister_B0B8HF14T2?_encoding=UTF8&th=1)         |
+| 12V Solenoid                        | Z24G50031OJX        | 9         | TEHAUX         | 28.26     | [Link](https://www.amazon.com/dp/B0BRYJS7HD?psc=1&ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_1) |
+| Roller Lever Arm Micro Limit Switch | KW12-3              | 10        | HiLetgo        | 6.60      | [Link](https://www.amazon.com/dp/B07X142VGC?psc=1&ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_2) |
+| LCD Display with I2C Adapter        | LCD2004             | 10        | SunFounder     | 14.26      | [Link](https://www.amazon.com/dp/B01GPUMP9C?ref=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&ref_=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&social_share=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&titleSource=true&th=1) |
 | FPGA                                | Upduino v3.1        | 2         | Upduino        | Stockroom | N/A                                                                                             |
 | MCU                                 | STM32L432KC         | 2         | STM            | Stockroom | N/A                                                                                             |
 | Metal Rods                          | N/A                 | 9         | N/A            | Stockroom | N/A                                                                                             |
 | ESP8266                             | ESP-WROOM-02        | 2         | Edwin Robotics | Stockroom | N/A                                                                                             |
-| **Total**                           |                     |           |                | **$56.27**|                                                                                                 |
+| **Total**                           |                     |           |                | **$62.32**|                                                                                                 |
 
 : BOM for Final Project
 
@@ -69,22 +65,30 @@ The project uses two MCUs, one for each side of the system. They serve as the ma
 
 We expect the toughest stage to be the mechanical bus. Synchronizing all actuators and making sure that the receiver samples at the correct time will be the biggest challenge. Since the clock is also mechanical, the whole system is susceptible to any faults from that channel. Below are the main performance specs and secondary specs to check-off to verify the process and completeness of the project:
 
-- **Main performance spec:** 
-    - [ ] Send a single word (16 characters/letters maximum)
-- **Secondary performace specs:**
+- **Main Performance Specs:** 
+    - [ ] Send 16 ASCII characters
+    - [ ] Send multiple blocks of messages in 128 bit blocks
+    - [ ] Hardware actuation system functions correctly
+    - [ ] Website UI correctly takes in user input and correctly displays output message for receiver
+    - [ ] Status and progress LCD respond as expected
+    - [ ] TRNG generates random key
+    - [ ] Random key is transmited to receiver over SPI backhaul
+    - [ ] SPRAM correctly stores multiple 128 bit ciphertext blocks
+    - [ ] FPGA pulls data from SPRAM 8 bits at a time to be sent over mechanical actuation system
     - [ ] Text messages are correctly sent/received between the ESP8266 to the MCU
     - [ ] MCU correctly encodes & decodes the received word in ASCII 
     - [ ] MCU-FPGA encryption/decryption modules communicate and perform as expected
     - [ ] 9 mechanical channels properly synchronized between the two sides.
-    - [ ] Status and progress LEDs respond as expected
     - [ ] System stops immediately if received data is different from sent data.
     - [ ] All 8 data buses are read synchronously
     - [ ] Able to receive & display at least 3 letters in a second i.e minimum 24bps transfer speed  
-- **Strech performance specs:**
-    - [ ] Able to send multiple words over
-    - [ ] Able to send words from a .txt file uploaded from the web app
-    - [ ] Faster transfer speeds (around 8 letters in a second, 64bps)
-    - [ ] Emoji handling
+
+- **Project Midpoint Demo Specs:**
+  At Minimum, the following must be completed:
+    - [ ] Hardware actuation system functions as expected
+    - [ ] ESP8266 Website UI functions and can take in user messages and display output messages
+    - [ ] LCD Display displays text
+    - [ ] RTL & Code has made progress
 
 ## Project Timeline & Task Allocation
 
@@ -104,11 +108,15 @@ All the relevant elements defined in the description above and will be connected
 
 ![Main Block Diagram.](docs/topBlockDiagram.png){#fig-sysDiagram .lightbox}
 
+Below is also a flowchart of how messages go from the user to receiver through our project in @fig-message:
+
+![Message Flowchart](docs/message.png){#fig-message .lightbox}
+
 The actuation block requires different modules and setup necessary for it to work as expected. The relay module specifications show the mentioned NO and NC connection modes. @fig-actBlock below shows the signals as well as voltage and circuit configurations:
 
 ![Hardware Actuation Block Diagram](docs/actuationBlock.png){#fig-actBlock .lightbox}
 
-![Hardware Actuation 3D Visualization](docs/actuationCircuit.png){#fig-actDiagram}
+![Hardware Actuation 3D Visualization](docs/actuationCircuit.jpg){#fig-actDiagram}
 
 The team has a fall-back plan in case new errors and challenges come up along the way to ensure that at least the main idea of transfering encrypted data mechanically still stands.
 
