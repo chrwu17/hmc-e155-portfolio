@@ -16,6 +16,9 @@ format:
 ## Introduction
 The goal of this lab is to use our FPGA as a hardware accelerator to perform AES-128 encryption with plaintext and key provided by our MCU. 
 
+## MCU Design
+All of the MCU Code was provided for this lab from the [E155 Lab 7 Starter Code Repository](https://github.com/HMC-E155/hmc-e155//tree/main/lab/lab07). Thus, the work done for this lab was for building the FPGA hardware accelerator below. 
+
 ## FPGA Design
 
 ### Objective
@@ -35,60 +38,84 @@ For the key expansion module, I will be following the pseudocode below:
 The logic for each of the modules that I write can be found in the NIST FIPS-197 documentation.
 
 #### Block Diagram
-My approach to this lab consists of eight different modules. It was designed to have many modules to make testing the functionality of each function of this lab easily. An overarching top level module called `lab3_cw`, which will be programmed to the board, and seven submodules `synchronizer`, `keypadFSM`, `keypad`, `sevenSegDigits`, `timeMultiplexer`, `sevenSegMux` and `sevenSegDisplay`. The `synchronizer` submodule will synchronize my keypad inputs using a simple two stage synchronizer with two flip flops. The `keypadFSM` submodule is an FSM that controls how to detect keypad presses and what to do with it. It also implements switch debouncing. The `keypad` submodule helps decode what number corresponds to each row and column on the 4 x 4 keypad. The `sevenSegDigits` submodule is responsible for shifting the digits on the dual 7-segment display based on what the FSM tells it to do. The `timeMultiplexer` submodule is the same as in lab 2, and is responsible for controlling which common anode gets turned on in the dual 7-segment display. The `sevenSegMux` submodule is the same as in lab 2, and is a mux that controls which four bit input will be fed into `sevenSegmentDisplay` based on the enable, `signal`, which is given by `timeMultiplexer`. The `sevenSegmentDisplay` submodule is the same one that was used in Lab 1 and 2, which will control the outputs on the 7-segment display, displaying the hexadecimal value provided by the dip switches, `s1[3:0]` and `s2[3:0]`.  It was designed to switch at 500 Hz, which should be high enough to not be noticeable to the human eye. It will also output a signal to guide which input should be used by the `sevenSegmentDisplay` module, which is controlled by `sevenSegMux`.  The top level `lab3_cw` calls upon all these submodules as well as the `HSOSC` submodule, which takes advantage of the onboard 48 MHz clock on the FPGA. Below is the block diagram I used to create this project:
+My approach for this lab was to have a module for each of the sections of the NIST FIPS-197 documentation. The top level `aes.sv` module uses the onboard HSOSC 48 MHz clock and receives the key and plaintext via SPI from the MCU and then does the encryption. Then it sends the encrypted ciphertext back to the MCU via SPI. Belows is my block diagram for this lab:
 
-![Lab 3 Block Diagram](images/blockDiagram.png)
+![Lab 7 Block Diagram](images/blockDiagram.png)
 
 #### AES Core FSM
-The FSM was designed to have 12 states. In order to detect key presses, I would rotate between scanning each row, one at a time until detecting a key input. Then it would move into the debounce state where it would have a 50 ms delay for debouncing, and then go to the hold state if the input is stable. 
 
-Some mechanical switches only bounce for 10 - 20 ms, so my debouncing method accounts for all of it and makes sure that keys are debounced. However, tradeoffs for this is that responses might be slow due to the long debounce time and the slow time between moving state to state, which goes at 1 kHz. But for the purposes of this lab, it seems pretty reasonable to go at 50 ms, since we cannot really exploit the long debounce times as it is not noticeable to the human eye and reaction speed. Another limitation is the need for an extra four states for debouncing. Right now, I am utilizing 4 bits of state, while only using 12 states, so I am wasting 4 states. If I did not have 4 bits of debouncing state, I could use just 3 bits of state and fully utilize it.
+##### FSM Overview
 
-Here is my FSM State Transition Diagram:
+The AES core FSM was designed with 9 states (S0-S8) to implement the AES-128 encryption algorithm according to FIPS-197. The FSM orchestrates the encryption process through an initial round, 9 regular rounds, and a final round, accounting for the pipeline delays introduced by synchronous S-box lookups.
 
-![FSM State Transition Diagram](images/FSM.png)
+###### Design Rationale
 
-Here is a state transition table for switching states:
+The state machine accounts for **pipeline delays** from synchronous operations:
+- **SubBytes delay**: 1 cycle (sbox_sync uses block RAM)
+- **KeyExpansion delay**: 2 cycles total (1 for subWord sbox, 1 for final register)
 
-| Current State | Condition                                           | Next State |
-| ------------- | --------------------------------------------------- | ---------- |
-| **S0**        | `buttonPressed && oneButtonPressed`                 | **S4**     |
-| **S0**        | `!(buttonPressed && oneButtonPressed)`              | **S1**     |
-| **S1**        | `buttonPressed && oneButtonPressed`                 | **S6**     |
-| **S1**        | `!(buttonPressed && oneButtonPressed)`              | **S2**     |
-| **S2**        | `buttonPressed && oneButtonPressed`                 | **S8**     |
-| **S2**        | `!(buttonPressed && oneButtonPressed)`              | **S3**     |
-| **S3**        | `buttonPressed && oneButtonPressed`                 | **S10**    |
-| **S3**        | `!(buttonPressed && oneButtonPressed)`              | **S0**     |
-| **S4**        | `!buttonPressed || !oneButtonPressed`               | **S1**     |
-| **S4**        | `counter >= 50`                                     | **S5**     |
-| **S4**        | `buttonPressed && oneButtonPressed && counter < 50` | **S4**     |
-| **S5**        | `!originalStillPressed`                             | **S1**     |
-| **S5**        | `originalStillPressed`                              | **S5**     |
-| **S6**        | `!buttonPressed || !oneButtonPressed`               | **S2**     |
-| **S6**        | `counter >= 50`                                     | **S7**     |
-| **S6**        | `buttonPressed && oneButtonPressed && counter < 50` | **S6**     |
-| **S7**        | `!originalStillPressed`                             | **S2**     |
-| **S7**        | `originalStillPressed`                              | **S7**     |
-| **S8**        | `!buttonPressed || !oneButtonPressed`               | **S3**     |
-| **S8**        | `counter >= 50`                                     | **S9**     |
-| **S8**        | `buttonPressed && oneButtonPressed && counter < 50` | **S8**     |
-| **S9**        | `!originalStillPressed`                             | **S3**     |
-| **S9**        | `originalStillPressed`                              | **S9**     |
-| **S10**       | `!buttonPressed || !oneButtonPressed`               | **S0**     |
-| **S10**       | `counter >= 50`                                     | **S11**    |
-| **S10**       | `buttonPressed && oneButtonPressed && counter < 50` | **S10**    |
-| **S11**       | `!originalStillPressed`                             | **S0**     |
-| **S11**       | `originalStillPressed`                              | **S11**    |
+These delays necessitate wait states between operations to ensure data is ready before proceeding. The design prioritizes correctness and synchronization over speed, completing full AES-128 encryption in **11 clock cycles** (including the load cycle).
 
-Here is a state transition table for my outputs:
+###### State Utilization
 
-| State Group | row Output | en Signal | rc Output | 
-|-------------|------------|-----------|-----------| 
-| S0, S4, S5 | 4'b0001 | 1 when S4→S5 | {rowPressed, col} | 
-| S1, S6, S7 | 4'b0010 | 1 when S6→S7 | {rowPressed, col} | 
-| S2, S8, S9 | 4'b0100 | 1 when S8→S9 | {rowPressed, col} | 
-| S3, S10, S11| 4'b1000 | 1 when S10→S11 | {rowPressed, col} |
+Currently using **4 bits** of state representation for **9 states**, leaving **7 unused states**. This is acceptable because:
+- Clear state encoding improves debuggability
+- Minimal hardware cost for extra flip-flops
+- Could potentially optimize to 3 bits (since 2³ = 8 < 9 < 16 = 2⁴), but would need special handling
+
+##### FSM State Transition Diagram
+
+![`aes_core` FSM State Transition Diagram](images/fsm.png)
+
+##### State Transition Table
+
+| Current State | Condition | Next State | Description |
+|---------------|-----------|------------|-------------|
+| **S0** | Always | **S1** | Initial AddRoundKey complete, SubBytes starts |
+| **S1** | Always | **S2** | Wait 1 cycle for SubBytes (sbox_sync) |
+| **S2** | Always | **S3** | Wait 1 cycle for KeyExpansion (subWord sbox) |
+| **S3** | Always | **S4** | Wait 1 cycle for key register |
+| **S4** | `round < 9` | **S1** | Continue to next regular round (rounds 1-9) |
+| **S4** | `round == 9` | **S5** | Move to final round (round 10) |
+| **S5** | Always | **S6** | Final SubBytes starts |
+| **S6** | Always | **S7** | Wait for final key expansion |
+| **S7** | Always | **S8** | Final AddRoundKey complete |
+| **S8** | Always | **S8** | Stay in done state |
+
+##### Output Control Tables
+
+###### State Actions 
+
+| State | Actions | Notes |
+|-------|---------|-------|
+| **S0** | `currentState <= addRoundKeyDone` | Capture initial AddRoundKey result |
+| **S1** | (none) | Wait for SubBytes pipeline |
+| **S2** | (none) | Wait for KeyExpansion pipeline |
+| **S3** | (none) | Wait for key register pipeline |
+| **S4** | `currentKey <= keyExpansionDone`<br>`currentState <= addRoundKeyDone`<br>`if (round == 9) savedFinalKey <= keyExpansionDone`<br>`if (round < 9) round++` | Capture expanded key and state<br>Save round-10 key when finishing round 9<br>Increment round counter |
+| **S5** | `finalLeftReg <= shiftRowsDone` | Save ShiftRows output (skip MixColumns) |
+| **S6** | (none) | Wait for final key expansion |
+| **S7** | `currentState <= addRoundKeyDone` | Final AddRoundKey result |
+| **S8** | `done <= 1` | Assert done signal |
+
+###### Datapath Multiplexer Controls
+
+**bypassMuxResult (input to AddRoundKey)**
+
+| State | Mux Output | Purpose |
+|-------|------------|---------|
+| **S0** | `plainTextState` | Initial round uses plaintext |
+| **S4** | `mixColumnsDone` | Regular rounds include MixColumns |
+| **S7** | `finalLeftReg` | Final round skips MixColumns |
+| Other | `currentState` | Default (maintain state) |
+
+**keyMuxOut (key input to AddRoundKey)**
+
+| State | Mux Output | Purpose |
+|-------|------------|---------|
+| **S0** | `initialKeyState` | Use original cipher key |
+| **S7** | `finalKeyState` | Use saved round-10 key |
+| Other | `keyState` | Use current expanded key |
 
 ### Testbench Simulation and Testing
 
@@ -223,908 +250,236 @@ As a result, my design and project has met all the requirements for this lab.
 ## AI Prototype
 
 ### Prompt 1
-To test how AI would do for this lab, I entered the following prompt to Claude AI:
+To test how AI would do for this lab, I entered the following prompt to ChatGPT:
 
 ```markdown
-Target device: Lattice iCE40 UP5K FPGA with internal high-speed oscillator (~20 MHz).
-Write synthesizable SystemVerilog to scan a 4x4 matrix keypad and display the last two hex keys pressed on a dual 7‑segment display. Implement:
-* A clock divider that derives a scan clock on the order of 100–200 Hz from the internal oscillator.
-* A keypad scanning controller that iterates one active‑low column at a time and samples active‑low rows, registering at most one key per press (debounce‑by‑design), ignoring additional presses while any key is held, and allowing a new registration only after release.
-* A top level that updates two hex digits (older and most recent) when a new key is registered and drives a time‑multiplexed two‑digit 7‑segment display without visible flicker and with balanced brightness.
-Use idiomatic SystemVerilog (e.g., logic, always_ff, enumerated states for FSMs). Provide clean module boundaries and keep all state synchronous. Include brief comments explaining the design choices.
+Write SystemVerilog HDL to implement the KeyExpansion logic described in the FIPS-197 uploaded document. The module should be purely combinational, using the previous key and current round number to calculate the next key. Assume other required modules (SubWord and RotWord) are already implemented.
 ```
 #### AI Code
 As a result, it returned the following code:
 
 ```markdown
-// Top-level module for 4x4 keypad scanner with dual 7-segment display
-// Targets Lattice iCE40 UP5K FPGA with ~20 MHz internal oscillator
-module keypad_display_top (
-    input  logic       clk,           // ~20 MHz internal oscillator
-    input  logic       rst_n,         // Active-low reset
-    
-    // Keypad interface (active-low)
-    output logic [3:0] col_n,         // Column outputs (active-low)
-    input  logic [3:0] row_n,         // Row inputs (active-low, pulled up)
-    
-    // 7-segment display interface
-    output logic [6:0] seg_n,         // 7-segment outputs (active-low)
-    output logic [1:0] dig_sel_n      // Digit select (active-low)
+// -----------------------------------------------------------------------------
+// AES-128 KeyExpansion (next round key)
+// Combinational: next_key = KeyExpansion(prev_key, round_num)
+// References: FIPS-197 §5.2 KEYEXPANSION(), Alg.2; Table 5 (Rcon)
+// Assumptions:
+//   - prev_key layout: {w0, w1, w2, w3} with w0 at [127:96] and w3 at [31:0]
+//   - Round numbers are 1..10 for AES-128.
+//   - Modules RotWord and SubWord exist and are purely combinational:
+//       module RotWord(input  logic [31:0] in, output logic [31:0] out);
+//       module SubWord(input  logic [31:0] in, output logic [31:0] out);
+// -----------------------------------------------------------------------------
+module AesKeyExpansion128 (
+    input  logic [127:0] prev_key,     // previous round key (K_round)
+    input  logic  [3:0]  round_num,    // 1..10
+    output logic [127:0] next_key      // next round key (K_round+1)
 );
+    // Split previous 128-bit key into 4 words
+    logic [31:0] w0, w1, w2, w3;
+    assign {w0, w1, w2, w3} = prev_key;
 
-    // Internal signals
-    logic scan_clk;                   // ~150 Hz scan clock
-    logic display_clk;                // ~1 kHz display multiplex clock
-    logic [3:0] key_pressed;          // Current key value (0-F)
-    logic key_valid;                  // Key press event pulse
-    
-    // Instantiate clock divider
-    clock_divider clk_div (
-        .clk(clk),
-        .rst_n(rst_n),
-        .scan_clk(scan_clk),
-        .display_clk(display_clk)
-    );
-    
-    // Instantiate keypad scanner
-    keypad_scanner scanner (
-        .clk(clk),
-        .rst_n(rst_n),
-        .scan_clk(scan_clk),
-        .col_n(col_n),
-        .row_n(row_n),
-        .key_pressed(key_pressed),
-        .key_valid(key_valid)
-    );
-    
-    // Instantiate display controller
-    display_controller display (
-        .clk(clk),
-        .rst_n(rst_n),
-        .display_clk(display_clk),
-        .key_pressed(key_pressed),
-        .key_valid(key_valid),
-        .seg_n(seg_n),
-        .dig_sel_n(dig_sel_n)
-    );
+    // Temp = SubWord(RotWord(w3)) ^ Rcon[round_num]  (FIPS-197 §5.2)
+    logic [31:0] rotw, subw, rcon, temp;
 
-endmodule
+    RotWord u_rot (.in(w3), .out(rotw));
+    SubWord u_sub (.in(rotw), .out(subw));
 
-// Clock divider module
-// Generates scan clock (~150 Hz) and display multiplex clock (~1 kHz)
-module clock_divider (
-    input  logic clk,           // ~20 MHz input clock
-    input  logic rst_n,
-    output logic scan_clk,      // ~150 Hz for keypad scanning
-    output logic display_clk    // ~1 kHz for display multiplexing
-);
-
-    // Clock divider counters
-    // For 20 MHz input: scan_clk = 20M / (2^17) ≈ 153 Hz
-    logic [16:0] scan_counter;
-    // For display_clk = 20M / (2^14) ≈ 1.2 kHz
-    logic [13:0] display_counter;
-    
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            scan_counter <= '0;
-            display_counter <= '0;
-        end else begin
-            scan_counter <= scan_counter + 1;
-            display_counter <= display_counter + 1;
-        end
-    end
-    
-    assign scan_clk = scan_counter[16];
-    assign display_clk = display_counter[13];
-
-endmodule
-
-// Keypad scanner with debouncing
-// Scans 4x4 matrix keypad, registers one key per press with debounce-by-design
-module keypad_scanner (
-    input  logic       clk,
-    input  logic       rst_n,
-    input  logic       scan_clk,
-    output logic [3:0] col_n,         // Active-low column outputs
-    input  logic [3:0] row_n,         // Active-low row inputs
-    output logic [3:0] key_pressed,   // Registered key value
-    output logic       key_valid      // Key press event (single cycle pulse)
-);
-
-    // FSM states
-    typedef enum logic [1:0] {
-        IDLE,           // No key pressed, ready to scan
-        KEY_DETECTED,   // Key detected, wait for stable reading
-        KEY_HELD        // Key registered, wait for release
-    } state_t;
-    
-    state_t state, next_state;
-    
-    // Scan control
-    logic [1:0] col_select;           // Current column being scanned (0-3)
-    logic [3:0] col_decoded;          // One-hot column select
-    logic [3:0] row_sync;             // Synchronized row inputs
-    
-    // Key detection
-    logic key_detected;
-    logic [3:0] detected_key;
-    
-    // Column decoder: converts 2-bit select to one-hot (active-low)
-    always_comb begin
-        col_decoded = 4'b1111;  // Default all inactive
-        col_decoded[col_select] = 1'b0;  // Activate selected column
-    end
-    
-    assign col_n = col_decoded;
-    
-    // Synchronize row inputs (2 FF synchronizer)
-    logic [3:0] row_sync1;
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            row_sync1 <= 4'b1111;
-            row_sync <= 4'b1111;
-        end else begin
-            row_sync1 <= row_n;
-            row_sync <= row_sync1;
-        end
-    end
-    
-    // Key detection logic
-    always_comb begin
-        key_detected = 1'b0;
-        detected_key = 4'h0;
-        
-        // Check for active row in current column
-        for (int i = 0; i < 4; i++) begin
-            if (!row_sync[i]) begin  // Active-low row detected
-                key_detected = 1'b1;
-                // Calculate key value: row * 4 + col
-                detected_key = {i[1:0], col_select};
-                break;  // Only register first detected key
-            end
-        end
-    end
-    
-    // Column scanning counter (advances on scan_clk)
-    logic scan_clk_prev;
-    logic scan_edge;
-    
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            scan_clk_prev <= 1'b0;
-        end else begin
-            scan_clk_prev <= scan_clk;
-        end
-    end
-    
-    assign scan_edge = scan_clk && !scan_clk_prev;
-    
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            col_select <= 2'b00;
-        end else if (scan_edge) begin
-            col_select <= col_select + 1;  // Cycles through 0-3
-        end
-    end
-    
-    // Main FSM
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            state <= IDLE;
-        end else begin
-            state <= next_state;
-        end
-    end
-    
-    always_comb begin
-        next_state = state;
-        
-        case (state)
-            IDLE: begin
-                if (key_detected) begin
-                    next_state = KEY_DETECTED;
-                end
-            end
-            
-            KEY_DETECTED: begin
-                if (!key_detected) begin
-                    next_state = IDLE;  // False detection, go back
-                end else if (scan_edge) begin
-                    next_state = KEY_HELD;  // Stable for full scan cycle
-                end
-            end
-            
-            KEY_HELD: begin
-                if (!key_detected) begin
-                    next_state = IDLE;  // Key released
-                end
-            end
+    // Round constants Rcon[j] = {rc,00,00,00} for j=1..10 (Table 5)
+    function automatic logic [31:0] rcon_lut(input logic [3:0] j);
+        unique case (j)
+            4'd1:  rcon_lut = 32'h01_00_00_00;
+            4'd2:  rcon_lut = 32'h02_00_00_00;
+            4'd3:  rcon_lut = 32'h04_00_00_00;
+            4'd4:  rcon_lut = 32'h08_00_00_00;
+            4'd5:  rcon_lut = 32'h10_00_00_00;
+            4'd6:  rcon_lut = 32'h20_00_00_00;
+            4'd7:  rcon_lut = 32'h40_00_00_00;
+            4'd8:  rcon_lut = 32'h80_00_00_00;
+            4'd9:  rcon_lut = 32'h1B_00_00_00;
+            4'd10: rcon_lut = 32'h36_00_00_00;
+            default: rcon_lut = 32'h00_00_00_00; // safe default
         endcase
-    end
-    
-    // Output registration
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            key_pressed <= 4'h0;
-            key_valid <= 1'b0;
-        end else begin
-            key_valid <= 1'b0;  // Default to no pulse
-            
-            if (state == KEY_DETECTED && next_state == KEY_HELD) begin
-                key_pressed <= detected_key;
-                key_valid <= 1'b1;  // Generate single-cycle pulse
-            end
-        end
-    end
+    endfunction
 
-endmodule
+    assign rcon = rcon_lut(round_num);
+    assign temp = subw ^ rcon;
 
-// Display controller with time multiplexing
-// Maintains two hex digits and drives 7-segment display without flicker
-module display_controller (
-    input  logic       clk,
-    input  logic       rst_n,
-    input  logic       display_clk,
-    input  logic [3:0] key_pressed,
-    input  logic       key_valid,
-    output logic [6:0] seg_n,         // 7-segment outputs (active-low)
-    output logic [1:0] dig_sel_n      // Digit select (active-low)
-);
+    // Next words (AES-128):
+    //  w4 = w0 ^ temp
+    //  w5 = w1 ^ w4
+    //  w6 = w2 ^ w5
+    //  w7 = w3 ^ w6
+    logic [31:0] nw0, nw1, nw2, nw3;
+    assign nw0 = w0 ^ temp;
+    assign nw1 = w1 ^ nw0;
+    assign nw2 = w2 ^ nw1;
+    assign nw3 = w3 ^ nw2;
 
-    // Stored digits (older and newer)
-    logic [3:0] digit_old, digit_new;
-    
-    // Display multiplexing
-    logic display_select;             // 0 = digit_old, 1 = digit_new
-    logic [3:0] current_digit;
-    
-    // Update stored digits on new key press
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            digit_old <= 4'h0;
-            digit_new <= 4'h0;
-        end else if (key_valid) begin
-            digit_old <= digit_new;     // Shift: new becomes old
-            digit_new <= key_pressed;  // Store new key
-        end
-    end
-    
-    // Display multiplexer (toggles on display_clk edge)
-    logic display_clk_prev;
-    logic display_edge;
-    
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            display_clk_prev <= 1'b0;
-        end else begin
-            display_clk_prev <= display_clk;
-        end
-    end
-    
-    assign display_edge = display_clk && !display_clk_prev;
-    
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            display_select <= 1'b0;
-        end else if (display_edge) begin
-            display_select <= ~display_select;
-        end
-    end
-    
-    // Select current digit and digit enable
-    always_comb begin
-        if (display_select) begin
-            current_digit = digit_new;
-            dig_sel_n = 2'b01;  // Enable right digit (newer)
-        end else begin
-            current_digit = digit_old;
-            dig_sel_n = 2'b10;  // Enable left digit (older)
-        end
-    end
-    
-    // 7-segment decoder (hex to 7-segment, active-low outputs)
-    always_comb begin
-        case (current_digit)
-            4'h0: seg_n = 7'b1000000;  // 0
-            4'h1: seg_n = 7'b1111001;  // 1
-            4'h2: seg_n = 7'b0100100;  // 2
-            4'h3: seg_n = 7'b0110000;  // 3
-            4'h4: seg_n = 7'b0011001;  // 4
-            4'h5: seg_n = 7'b0010010;  // 5
-            4'h6: seg_n = 7'b0000010;  // 6
-            4'h7: seg_n = 7'b1111000;  // 7
-            4'h8: seg_n = 7'b0000000;  // 8
-            4'h9: seg_n = 7'b0010000;  // 9
-            4'hA: seg_n = 7'b0001000;  // A
-            4'hB: seg_n = 7'b0000011;  // b
-            4'hC: seg_n = 7'b1000110;  // C
-            4'hD: seg_n = 7'b0100001;  // d
-            4'hE: seg_n = 7'b0000110;  // E
-            4'hF: seg_n = 7'b0001110;  // F
-        endcase
-    end
-
+    assign next_key = {nw0, nw1, nw2, nw3};
 endmodule
 ```
 
-#### Test in Radiant
-I then started a new project in Radiant and attempted to synthesize the code. Claude was able to synthesize properly and it seems like it would actually work quite well, which is really impressive. I would need to add the HSOSC module to be able to utilize the FPGA's onboard clock to run this. But overall, it worked quite well
+#### Test in Questa
+I tried to fix the code and run my testbench, but I could not get the testbench to run as one of the inputs is the round number not the rcon value, and for my code, I have it so that my `aes_core` file calculates rcon based on the round number and feeds it into `keyEpxansion`.
+
+![Cannot run testbench on AI Result](images/ai1.png)
 
 ### Modular Prompts
 
-I then ran the second prompt by using modular prompts. I used the following prompts:
+I then ran the second prompt by the pseudocode. I used the following prompt:
 
 ```markdown
-Target device: Lattice iCE40 UP5K FPGA.
+Write SystemVerilog HDL to implement the following logic:
 
-Overall Goal: Write SystemVerilog to scan a 4x4 matrix keypad and display the last two hex keys pressed on a dual 7 segment display.
+i = 0
+while i < Nk do
+    w[i] <- key[4*i..4*i+3]
+    i <- i+1
+end while
+while i <= 4 * Nr + 3 do
+    temp <- w[i-1]
+    if i mod Nk = 0 then
+        temp <- module1(module2(temp)) (+) Rcon[i/Nk]
+    else if Nk > 6 and i mod Nk = 4 then
+        temp <- module1(temp)
+    end if
+    w[i] <- w[i-Nk] (+) temp
+    i <- i + 1
+end while
+return w
+Assume module1 and module2 are existing modules that can be instantiated. (+) refers to XOR. Unwrap the loop in the provided pseudo code so it uses the previous iterations output to generate the new iteration.
 
-Current Goal: Write a synthesizable SystemVerilog module that produces a one‑shot registration signal for the keypad system. Behavior:
-
-When a key press is first detected, capture the current key code and assert a single‑cycle “new key” pulse.
-While any key remains pressed, do not accept additional keys.
-Only after keys are released should a subsequent press be recognized.
-This should handle debouncing of the keys.
-Implement as a small synchronous FSM with enumerated states and glitch‑free outputs. Keep names and interfaces reasonable; do not assume any hidden modules beyond what you define here
-```
-
-```markdown
-Target device: Lattice iCE40 UP5K FPGA.
-
-Write a synthesizable SystemVerilog module that cycles through keypad columns (active‑low, one at a time) and samples rows (active‑low) to detect a single key at a time. Behavior:
-
-Iterate columns at a suitable scan rate derived from the divided clock and sample rows.
-When a key is detected, report a stable key code consistent with a standard 4x4 keypad layout and maintain it while the key remains pressed.
-Provide a boolean signal indicating whether any key is currently pressed.
-Use clean state encoding and synchronous logic; avoid combinational feedback and latches.
-```
-
-```markdown
-Target device: Lattice iCE40 UP5K FPGA with internal oscillator as the root clock source.
-
-Write a top‑level SystemVerilog module that instantiates the scanner and one‑shot modules, shifts the last two keys (older ← most recent; most recent ← new), and drives a multiplexed two‑digit seven‑segment display. Requirements:
-
-Update the displayed digits only when a new key is registered.
-Ensure equal apparent brightness and no visible flicker.
-Keep all logic synthesizable and synchronous; use idiomatic SystemVerilog constructs.
-Provide any small clock‑enable or divider logic you need. You can also assume that a sevenSegment module exists that takes a 4 bit input and outputs the 7 segments.
+Do not use any existing knowledge of the AES specifications in your answer.
 ```
 
 #### AI Code Result
-Claude gave me the following code. 
+ChatGPT gave me the following code. 
 
 ```markdown
-module keypad_oneshot (
-    input  logic        clk,
-    input  logic        rst_n,
-    input  logic        key_valid,     // From keypad scanner - high when any key detected
-    input  logic [3:0]  key_code,      // From keypad scanner - current key code
-    
-    output logic        new_key_pulse, // Single-cycle pulse when new key registered
-    output logic [3:0]  captured_key   // Stable key code output
+// ------------------------------------------------------------
+// Key-like expansion (fully combinational, loop "unrolled")
+// Mirrors the provided pseudo-code without using any AES spec.
+//
+// PSEUDO (for reference):
+// i = 0
+// while i < Nk do
+//   w[i] <- key[4*i..4*i+3]
+//   i <- i+1
+// end while
+// while i <= 4 * Nr + 3 do
+//   temp <- w[i-1]
+//   if i mod Nk = 0 then
+//       temp <- module1(module2(temp)) (+) Rcon[i/Nk]
+//   else if Nk > 6 and i mod Nk = 4 then
+//       temp <- module1(temp)
+//   end if
+//   w[i] <- w[i-Nk] (+) temp
+//   i <- i + 1
+// end while
+// return w
+// ------------------------------------------------------------
+
+module keyExpansion #(
+    parameter int NK = 4,          // number of initial key words
+    parameter int NR = 10          // used to size total output words
+) (
+    // Initial key as words: key_words[i] corresponds to key[4*i .. 4*i+3]
+    input logic clk,
+    input  logic [31:0] key_words [0:NK-1],
+
+    // Rcon array: only entries actually used are those at indices i/NK
+    // for i in [NK .. (4*NR+3)], when (i % NK) == 0.
+    // Size it to at least ( (4*NR+3) / NK ).
+    input  logic [31:0] rcon      [0:((4*NR+3)/NK)],
+
+    // Expanded words w[0 .. 4*NR+3]
+    output logic [31:0] w         [0:(4*NR+3)]
 );
 
-    // FSM States
-    typedef enum logic [1:0] {
-        IDLE        = 2'b00,  // No key pressed, ready for new press
-        DEBOUNCE    = 2'b01,  // Key detected, debouncing
-        KEY_HELD    = 2'b10,  // Key validated and held, waiting for release
-        RELEASE_DEB = 2'b11   // Key released, debouncing release
-    } state_t;
-    
-    state_t current_state, next_state;
-    
-    // Debounce counter - adjust DEBOUNCE_COUNT based on your clock frequency
-    // For 12MHz clock, 240 cycles = ~20us debounce time
-    localparam int DEBOUNCE_COUNT = 240;
-    localparam int COUNTER_WIDTH = $clog2(DEBOUNCE_COUNT + 1);
-    
-    logic [COUNTER_WIDTH-1:0] debounce_counter;
-    logic debounce_done;
-    logic [3:0] key_code_reg;
-    
-    // Debounce counter logic
-    assign debounce_done = (debounce_counter == DEBOUNCE_COUNT);
-    
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            debounce_counter <= '0;
-        end else begin
-            case (current_state)
-                IDLE: begin
-                    if (key_valid) begin
-                        debounce_counter <= 1;  // Start counting
-                    end else begin
-                        debounce_counter <= '0;
-                    end
-                end
-                
-                DEBOUNCE: begin
-                    if (key_valid && !debounce_done) begin
-                        debounce_counter <= debounce_counter + 1;
-                    end else begin
-                        debounce_counter <= '0;
-                    end
-                end
-                
-                KEY_HELD: begin
-                    if (!key_valid) begin
-                        debounce_counter <= 1;  // Start release debounce
-                    end else begin
-                        debounce_counter <= '0;
-                    end
-                end
-                
-                RELEASE_DEB: begin
-                    if (!key_valid && !debounce_done) begin
-                        debounce_counter <= debounce_counter + 1;
-                    end else begin
-                        debounce_counter <= '0;
-                    end
-                end
-                
-                default: debounce_counter <= '0;
-            endcase
-        end
-    end
-    
-    // State register
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            current_state <= IDLE;
-        end else begin
-            current_state <= next_state;
-        end
-    end
-    
-    // Next state logic
-    always_comb begin
-        next_state = current_state;  // Default: stay in current state
-        
-        case (current_state)
-            IDLE: begin
-                if (key_valid) begin
-                    next_state = DEBOUNCE;
-                end
-            end
-            
-            DEBOUNCE: begin
-                if (!key_valid) begin
-                    next_state = IDLE;  // Glitch - go back to idle
-                end else if (debounce_done) begin
-                    next_state = KEY_HELD;  // Valid press confirmed
-                end
-            end
-            
-            KEY_HELD: begin
-                if (!key_valid) begin
-                    next_state = RELEASE_DEB;
-                end
-            end
-            
-            RELEASE_DEB: begin
-                if (key_valid) begin
-                    next_state = KEY_HELD;  // Key pressed again before full release
-                end else if (debounce_done) begin
-                    next_state = IDLE;  // Clean release confirmed
-                end
-            end
-            
-            default: next_state = IDLE;
-        endcase
-    end
-    
-    // Key code capture register
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            key_code_reg <= 4'h0;
-        end else if (current_state == DEBOUNCE && debounce_done && key_valid) begin
-            // Capture key code when transitioning from DEBOUNCE to KEY_HELD
-            key_code_reg <= key_code;
-        end
-    end
-    
-    // Output assignments
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            new_key_pulse <= 1'b0;
-        end else begin
-            // Generate single-cycle pulse when transitioning to KEY_HELD
-            new_key_pulse <= (current_state == DEBOUNCE) && 
-                           (next_state == KEY_HELD) && 
-                           debounce_done;
-        end
-    end
-    
-    // Captured key output is stable once registered
-    assign captured_key = key_code_reg;
+    // Total number of output words
+    localparam int WORDS = 4*NR + 4;
 
-endmodule
-```
+    // Internal wire array for the chain
+    logic [31:0] w_int [0:WORDS-1];
 
-For prompt 2, I got the following code:
-
-```markdown
-module keypad_scanner (
-    input  logic        clk,
-    input  logic        rst_n,
-    input  logic [3:0]  keypad_rows,    // Active-low row inputs
-    
-    output logic [3:0]  keypad_cols,    // Active-low column outputs  
-    output logic        key_valid,      // High when any key is pressed
-    output logic [3:0]  key_code        // 4-bit key code (0-F hex)
-);
-
-    // Keypad layout for reference:
-    // Cols: 0   1   2   3
-    // Row 0: 1   2   3   A
-    // Row 1: 4   5   6   B  
-    // Row 2: 7   8   9   C
-    // Row 3: *   0   #   D
-    
-    // Standard hex encoding:
-    // 1=0x1, 2=0x2, 3=0x3, A=0xA
-    // 4=0x4, 5=0x5, 6=0x6, B=0xB  
-    // 7=0x7, 8=0x8, 9=0x9, C=0xC
-    // *=0xE, 0=0x0, #=0xF, D=0xD
-
-    // Scan timing - divide main clock for column scanning
-    // For 12MHz clock, divide by 3000 gives ~4kHz scan rate (1ms per column, 4ms full cycle)
-    localparam int SCAN_DIVIDER = 3000;
-    localparam int SCAN_COUNTER_WIDTH = $clog2(SCAN_DIVIDER);
-    
-    logic [SCAN_COUNTER_WIDTH-1:0] scan_counter;
-    logic scan_tick;
-    
-    // Column state counter (2 bits for 4 columns)
-    logic [1:0] col_select;
-    
-    // Key detection and encoding
-    logic [3:0] current_key_code;
-    logic current_key_valid;
-    logic [3:0] stable_key_code;
-    logic stable_key_valid;
-    
-    // Generate scan tick - divides clock for column scanning
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            scan_counter <= '0;
-            scan_tick <= 1'b0;
-        end else begin
-            if (scan_counter == SCAN_DIVIDER - 1) begin
-                scan_counter <= '0;
-                scan_tick <= 1'b1;
-            end else begin
-                scan_counter <= scan_counter + 1;
-                scan_tick <= 1'b0;
-            end
+    // ---- First segment: copy initial key words ----
+    genvar k;
+    generate
+        for (k = 0; k < NK; k++) begin : INIT
+            // w[k] <- key[4*k .. 4*k+3]
+            assign w_int[k] = key_words[k];
         end
-    end
-    
-    // Column selection counter - advances on scan_tick
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            col_select <= 2'b00;
-        end else if (scan_tick) begin
-            col_select <= col_select + 1;  // Auto-wraps at 4
-        end
-    end
-    
-    // Generate column outputs - active low, one-hot
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            keypad_cols <= 4'b1111;  // All high (inactive)
-        end else begin
-            case (col_select)
-                2'b00: keypad_cols <= 4'b1110;  // Column 0 active
-                2'b01: keypad_cols <= 4'b1101;  // Column 1 active  
-                2'b10: keypad_cols <= 4'b1011;  // Column 2 active
-                2'b11: keypad_cols <= 4'b0111;  // Column 3 active
-                default: keypad_cols <= 4'b1111;
-            endcase
-        end
-    end
-    
-    // Key detection and encoding logic
-    always_comb begin
-        current_key_valid = 1'b0;
-        current_key_code = 4'h0;
-        
-        // Check for key press in current column
-        // Rows are active-low, so look for 0 bits
-        case (col_select)
-            2'b00: begin // Column 0: 1, 4, 7, *
-                case (keypad_rows)
-                    4'b1110: begin current_key_valid = 1'b1; current_key_code = 4'h1; end // Row 0: '1'
-                    4'b1101: begin current_key_valid = 1'b1; current_key_code = 4'h4; end // Row 1: '4'  
-                    4'b1011: begin current_key_valid = 1'b1; current_key_code = 4'h7; end // Row 2: '7'
-                    4'b0111: begin current_key_valid = 1'b1; current_key_code = 4'hE; end // Row 3: '*'
-                    default: begin current_key_valid = 1'b0; current_key_code = 4'h0; end
-                endcase
-            end
-            
-            2'b01: begin // Column 1: 2, 5, 8, 0
-                case (keypad_rows)
-                    4'b1110: begin current_key_valid = 1'b1; current_key_code = 4'h2; end // Row 0: '2'
-                    4'b1101: begin current_key_valid = 1'b1; current_key_code = 4'h5; end // Row 1: '5'
-                    4'b1011: begin current_key_valid = 1'b1; current_key_code = 4'h8; end // Row 2: '8' 
-                    4'b0111: begin current_key_valid = 1'b1; current_key_code = 4'h0; end // Row 3: '0'
-                    default: begin current_key_valid = 1'b0; current_key_code = 4'h0; end
-                endcase
-            end
-            
-            2'b10: begin // Column 2: 3, 6, 9, #
-                case (keypad_rows)
-                    4'b1110: begin current_key_valid = 1'b1; current_key_code = 4'h3; end // Row 0: '3'
-                    4'b1101: begin current_key_valid = 1'b1; current_key_code = 4'h6; end // Row 1: '6'
-                    4'b1011: begin current_key_valid = 1'b1; current_key_code = 4'h9; end // Row 2: '9'
-                    4'b0111: begin current_key_valid = 1'b1; current_key_code = 4'hF; end // Row 3: '#' 
-                    default: begin current_key_valid = 1'b0; current_key_code = 4'h0; end
-                endcase
-            end
-            
-            2'b11: begin // Column 3: A, B, C, D
-                case (keypad_rows)
-                    4'b1110: begin current_key_valid = 1'b1; current_key_code = 4'hA; end // Row 0: 'A'
-                    4'b1101: begin current_key_valid = 1'b1; current_key_code = 4'hB; end // Row 1: 'B'
-                    4'b1011: begin current_key_valid = 1'b1; current_key_code = 4'hC; end // Row 2: 'C' 
-                    4'b0111: begin current_key_valid = 1'b1; current_key_code = 4'hD; end // Row 3: 'D'
-                    default: begin current_key_valid = 1'b0; current_key_code = 4'h0; end
-                endcase
-            end
-            
-            default: begin
-                current_key_valid = 1'b0;
-                current_key_code = 4'h0;
-            end
-        endcase
-    end
-    
-    // Stable key output registers - hold value while key is pressed
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            stable_key_valid <= 1'b0;
-            stable_key_code <= 4'h0;
-        end else begin
-            if (current_key_valid) begin
-                // Key detected - capture and hold
-                stable_key_valid <= 1'b1;
-                stable_key_code <= current_key_code;
-            end else if (!current_key_valid && scan_tick && col_select == 2'b11) begin
-                // End of scan cycle with no key detected - clear outputs
-                stable_key_valid <= 1'b0;
-                stable_key_code <= 4'h0;
-            end
-            // Otherwise maintain previous values
-        end
-    end
-    
-    // Output assignments
-    assign key_valid = stable_key_valid;
-    assign key_code = stable_key_code;
+    endgenerate
 
-endmodule
-```
+    // ---- Second segment: generate remaining words, unrolled ----
+    // For each i in [NK .. WORDS-1], compute per the pseudo-code.
+    genvar i;
+    generate
+        for (i = NK; i < WORDS; i++) begin : EXPAND
+            // temp <- w[i-1] (base)
+            wire [31:0] base_temp = w_int[i-1];
 
-For the top module, it gave me the following code:
+            // Parallel evaluations needed for conditional paths:
+            //   A) module1(module2(temp))
+            //   B) module1(temp)
+            // We build both and select by static conditions below.
+            wire [31:0] m2_out;
+            wire [31:0] m1_after_m2_out;
+            wire [31:0] m1_direct_out;
 
-```markdown
-module keypad_top (
-    // External connections
-    input  logic [3:0]  keypad_rows,    // Active-low row inputs from keypad
-    output logic [3:0]  keypad_cols,    // Active-low column drives to keypad
-    output logic [6:0]  seg_cathodes,   // 7-segment cathodes (a-g, active-low)
-    output logic [1:0]  seg_anodes      // 7-segment anodes (digit select, active-low)
-);
+            // Instantiate module2 for this step (input is base_temp)
+            rotWord u_m2 (
+                base_temp,
+                m2_out
+            );
 
-    // Internal oscillator instance for iCE40 UP5K (48MHz nominal)
-    logic clk_48mhz;
-    
-    SB_HFOSC #(
-        .CLKHF_DIV("0b10")  // Divide by 4: 48MHz/4 = 12MHz
-    ) u_hfosc (
-        .CLKHFPU(1'b1),     // Power up the oscillator
-        .CLKHFEN(1'b1),     // Enable the oscillator
-        .CLKHF(clk_48mhz)   // 48MHz output (before divider)
-    );
-    
-    // Main system clock (12MHz after internal divider)
-    logic clk;
-    assign clk = clk_48mhz;
-    
-    // Generate reset from power-on
-    logic [3:0] reset_counter = 4'h0;
-    logic rst_n;
-    
-    always_ff @(posedge clk) begin
-        if (reset_counter != 4'hF) begin
-            reset_counter <= reset_counter + 1;
-            rst_n <= 1'b0;
-        end else begin
-            rst_n <= 1'b1;
-        end
-    end
-    
-    // Inter-module signals
-    logic        key_valid;
-    logic [3:0]  key_code;
-    logic        new_key_pulse;
-    logic [3:0]  captured_key;
-    
-    // Key history registers - shift register for last two keys
-    logic [3:0]  recent_key;     // Most recent key (rightmost digit)
-    logic [3:0]  older_key;      // Older key (leftmost digit)
-    
-    // Seven-segment display multiplexing
-    logic [3:0]  mux_counter;
-    logic        digit_select;   // 0 = older digit, 1 = recent digit
-    logic [3:0]  current_digit;
-    logic [6:0]  seg_data;
-    
-    // Display refresh rate: 12MHz / 4096 ≈ 2.93kHz per digit, 1.46kHz refresh rate
-    // This gives good brightness without visible flicker
-    localparam int MUX_DIVIDER = 4096;
-    localparam int MUX_COUNTER_WIDTH = $clog2(MUX_DIVIDER);
-    
-    logic [MUX_COUNTER_WIDTH-1:0] mux_div_counter;
-    logic mux_tick;
-    
-    //==========================================================================
-    // Clock divider for display multiplexing
-    //==========================================================================
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            mux_div_counter <= '0;
-            mux_tick <= 1'b0;
-        end else begin
-            if (mux_div_counter == MUX_DIVIDER - 1) begin
-                mux_div_counter <= '0;
-                mux_tick <= 1'b1;
-            end else begin
-                mux_div_counter <= mux_div_counter + 1;
-                mux_tick <= 1'b0;
-            end
-        end
-    end
-    
-    //==========================================================================
-    // Display multiplexing logic
-    //==========================================================================
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            digit_select <= 1'b0;
-        end else if (mux_tick) begin
-            digit_select <= ~digit_select;  // Toggle between digits
-        end
-    end
-    
-    // Select current digit data
-    always_comb begin
-        case (digit_select)
-            1'b0: current_digit = older_key;   // Left digit (older key)
-            1'b1: current_digit = recent_key;  // Right digit (recent key)
-            default: current_digit = 4'h0;
-        endcase
-    end
-    
-    // Generate anode signals (active-low digit select)
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            seg_anodes <= 2'b11;  // Both digits off
-        end else begin
-            case (digit_select)
-                1'b0: seg_anodes <= 2'b10;  // Left digit on, right digit off
-                1'b1: seg_anodes <= 2'b01;  // Left digit off, right digit on
-                default: seg_anodes <= 2'b11;
-            endcase
-        end
-    end
-    
-    //==========================================================================
-    // Key history management
-    //==========================================================================
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            recent_key <= 4'h0;
-            older_key <= 4'h0;
-        end else if (new_key_pulse) begin
-            // Shift keys: older ← recent, recent ← new
-            older_key <= recent_key;
-            recent_key <= captured_key;
-        end
-    end
-    
-    //==========================================================================
-    // Module instantiations
-    //==========================================================================
-    
-    // Keypad scanner
-    keypad_scanner u_scanner (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .keypad_rows (keypad_rows),
-        .keypad_cols (keypad_cols),
-        .key_valid   (key_valid),
-        .key_code    (key_code)
-    );
-    
-    // One-shot key registration
-    keypad_oneshot u_oneshot (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .key_valid     (key_valid),
-        .key_code      (key_code),
-        .new_key_pulse (new_key_pulse),
-        .captured_key  (captured_key)
-    );
-    
-    // Seven-segment decoder for current digit
-    sevenSegment u_seven_seg (
-        .hex_digit (current_digit),
-        .segments  (seg_data)
-    );
-    
-    // Register seven-segment outputs for clean timing
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            seg_cathodes <= 7'b1111111;  // All segments off (active-low)
-        end else begin
-            seg_cathodes <= seg_data;
-        end
-    end
+            // module1 on module2(base_temp)
+             subWord u_m1_after_m2 (
+                m2_out,
+                m1_after_m2_out
+            );
 
-endmodule
+            // module1 on base_temp
+            subWord u_m1_direct (
+                base_temp,
+                m1_direct_out
+            );
 
-//==========================================================================
-// Seven-segment decoder module (as referenced in the instantiation)
-//==========================================================================
-module sevenSegment (
-    input  logic [3:0] hex_digit,
-    output logic [6:0] segments    // {g,f,e,d,c,b,a} - active low
-);
+            // Static (elaboration-time) conditions for this unrolled index i:
+            localparam bit COND_ROT   = ((i % NK) == 0);             // i mod Nk = 0
+            localparam bit COND_ONLY1 = ((NK > 6) && ((i % NK) == 4)); // Nk > 6 and i mod Nk = 4
 
-    always_comb begin
-        case (hex_digit)
-            4'h0: segments = 7'b1000000; // '0'  
-            4'h1: segments = 7'b1111001; // '1'
-            4'h2: segments = 7'b0100100; // '2'
-            4'h3: segments = 7'b0110000; // '3'
-            4'h4: segments = 7'b0011001; // '4'
-            4'h5: segments = 7'b0010010; // '5'
-            4'h6: segments = 7'b0000010; // '6'
-            4'h7: segments = 7'b1111000; // '7'
-            4'h8: segments = 7'b0000000; // '8'
-            4'h9: segments = 7'b0010000; // '9'
-            4'hA: segments = 7'b0001000; // 'A'
-            4'hB: segments = 7'b0000011; // 'b'
-            4'hC: segments = 7'b1000110; // 'C'
-            4'hD: segments = 7'b0100001; // 'd'
-            4'hE: segments = 7'b0000110; // 'E'
-            4'hF: segments = 7'b0001110; // 'F'
-            default: segments = 7'b1111111; // All off
-        endcase
-    end
+            // Select temp per pseudo-code:
+            // if (i % Nk == 0)              temp <- module1(module2(temp)) XOR Rcon[i/Nk]
+            // else if (Nk > 6 && i%Nk == 4) temp <- module1(temp)
+            // else                           temp <- base_temp
+            wire [31:0] temp_selected = (COND_ROT)   ? (m1_after_m2_out ^ rcon[i / NK]) :
+                                        (COND_ONLY1) ?  m1_direct_out :
+                                                        base_temp;
+
+            // w[i] <- w[i-Nk] XOR temp
+            assign w_int[i] = w_int[i - NK] ^ temp_selected;
+        end
+    endgenerate
+
+    // Drive outputs
+    genvar j;
+    generate
+        for (j = 0; j < WORDS; j++) begin : OUTS
+            assign w[j] = w_int[j];
+        end
+    endgenerate
 
 endmodule
 ```
 #### Radiant Test
-I created a new project in Radiant and it could not synthesize properly due to the error:
+I fixed my testbench and made some code changes and ran the testbench but it did not pass the testbench. Below is a screenshot of the waveforms and the transcript.
 
-```markdown
-Error	35901063	Synthesis	ERROR <35901063> - c:/users/chris/onedrive/desktop/wu-e155-lab3/e155-lab3/lab3_aiprototype2/source/impl_1/keypad_top.sv(18): instantiating unknown module SB_HFOSC. VERI-1063 [keypad_top.sv:18]	
-```
-
-I then changed this from SB_HFOSC to HSOSC and it was able to synthesize
+![AI Prompt 2 Testbench Results](images/ai2.png)
 
 ### Reflection
-I am overall very impressed with how AI performed. I learned that Claude is able to write much cleaner code than me, avoiding redundancies and having everything fit in just one module. While this is helpful here, it might not be helpful for testbenching purposes, but I think if I gave AI the right prompts, it would modify my code to make it more testbench friendly and also write the testbenches for me. 
-
-However, I think that using a modular structure is much better, being able to outline the way you want your code to run and giving the AI more specific prompts can help it give you code that works well. Using a one module approach is difficult for testing and debugging, and splitting it up makes it both easier for the user and for the AI, so be able to systematically work part by part. 
-
-What I learned here, is how important it is to be very precise with prompting AI. The prompts that are given to us to give to AI are very precise in terminology and what we want the AI to do, leaving no room for unnecessary misinterpretation that causes the code to not work. Thus, by giving well written prompts, we are able to get AI to give us exactly what we want and make it work. 
-
-Once again, I am very impressed with Claude and I can see how useful it will be for the final project. 
+For this lab, AI did not work too well. When using pseudocode by itself, ChatGPT was lost and produced very poor outputs. For the first prompt where we attached the NIST specification it had a lot more potential with the ride code tweaks and prompt changes, but ultimately was not where I wanted it to be. None of the code was able to pass testbenches, but continued prompting to tweak the code could have helped make it better and fix it. I was surprised that it did not work, maybe due to the complexity of the NIST FIPS-197 specification. 
 
 ## Hours Spent
-I spent 42 hours on this lab.
+I spent 20 hours on this lab.
