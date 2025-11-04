@@ -243,7 +243,21 @@ After finishing with the design, I was able to program my FPGA and MCU. I used a
 
 Below is the Logic Analyzer SPI Transaction: 
 
-![Logic Analyzer SPI Transaction](images/demo.MOV)
+![Logic Analyzer SPI Transaction](images/la.png)
+
+Within my logic analyzer transaction, I can also confirm that I have the correct values for my plaintext, key, and ciphertext. Below are logic analyzer pictures for the first four values of each:
+
+![First two values of Plaintext](images/pt1.png)
+
+![Third and fourth values of Plaintext](images/pt2.png)
+
+![First two values of key](images/key1.png)
+
+![Third and fourth values of key](images/key2.png)
+
+![First two values of ciphertext](images/ct1.png)
+
+![Third and fourth values of ciphertext](images/ct2.png)
 
 As a result, my design and project has met all the requirements for this lab. 
 
