@@ -29,6 +29,8 @@ website:
         menu:
           - href: finalProject/proposal/proposal.qmd
             text: Project Proposal
+          - href: finalProject/midpoint/midpoint.qmd
+            text: Midpoint Status Report
       - href: resources.qmd
         text: Resources
       - href: blog.qmd
