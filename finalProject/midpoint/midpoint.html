@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>MechaCrypt: A Solenoid-Based Encrypted Data Transmission System – E155 Portfolio</title>
+<title>MechCrypt: Hardware-Encrypted Messaging System – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -177,26 +177,26 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#introduction-and-project-overview" id="toc-introduction-and-project-overview" class="nav-link active" data-scroll-target="#introduction-and-project-overview">Introduction and Project Overview</a></li>
-  <li><a href="#fpga-use" id="toc-fpga-use" class="nav-link" data-scroll-target="#fpga-use">FPGA Use</a>
+  <li><a href="#task-allocation-summary" id="toc-task-allocation-summary" class="nav-link active" data-scroll-target="#task-allocation-summary">Task Allocation Summary</a></li>
+  <li><a href="#progress-summary" id="toc-progress-summary" class="nav-link" data-scroll-target="#progress-summary">Progress Summary</a>
   <ul class="collapse">
-  <li><a href="#fpga-resource-usage" id="toc-fpga-resource-usage" class="nav-link" data-scroll-target="#fpga-resource-usage">FPGA Resource Usage</a></li>
+  <li><a href="#fpga-tasks-and-modules" id="toc-fpga-tasks-and-modules" class="nav-link" data-scroll-target="#fpga-tasks-and-modules">FPGA Tasks and Modules</a></li>
+  <li><a href="#mcu-tasks-and-drivers" id="toc-mcu-tasks-and-drivers" class="nav-link" data-scroll-target="#mcu-tasks-and-drivers">MCU Tasks and Drivers</a></li>
   </ul></li>
-  <li><a href="#mcu-use" id="toc-mcu-use" class="nav-link" data-scroll-target="#mcu-use">MCU Use</a></li>
-  <li><a href="#non-trivial-hardware" id="toc-non-trivial-hardware" class="nav-link" data-scroll-target="#non-trivial-hardware">Non Trivial Hardware</a></li>
-  <li><a href="#bill-of-materials" id="toc-bill-of-materials" class="nav-link" data-scroll-target="#bill-of-materials">Bill of Materials</a></li>
-  <li><a href="#project-performance-specs" id="toc-project-performance-specs" class="nav-link" data-scroll-target="#project-performance-specs">Project Performance Specs</a></li>
-  <li><a href="#project-timeline-task-allocation" id="toc-project-timeline-task-allocation" class="nav-link" data-scroll-target="#project-timeline-task-allocation">Project Timeline &amp; Task Allocation</a></li>
-  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
+  <li><a href="#hardware-setup-and-demo" id="toc-hardware-setup-and-demo" class="nav-link" data-scroll-target="#hardware-setup-and-demo">Hardware Setup and Demo</a></li>
+  <li><a href="#high-level-block-diagram" id="toc-high-level-block-diagram" class="nav-link" data-scroll-target="#high-level-block-diagram">High Level Block Diagram</a></li>
+  <li><a href="#high-level-data-flow-diagram" id="toc-high-level-data-flow-diagram" class="nav-link" data-scroll-target="#high-level-data-flow-diagram">High Level Data Flow Diagram</a></li>
+  <li><a href="#main-performance-specs" id="toc-main-performance-specs" class="nav-link" data-scroll-target="#main-performance-specs">Main Performance Specs:</a></li>
+  <li><a href="#project-midpoint-demo-specs" id="toc-project-midpoint-demo-specs" class="nav-link" data-scroll-target="#project-midpoint-demo-specs">Project Midpoint Demo Specs</a></li>
   </ul>
-<div class="quarto-other-links"><h2>Other Links</h2><ul><li><a href="https://hmc-e155.github.io/resources/"><i class="bi bi-file-earmark-check"></i>FPGA &amp; MCU Documentation</a></li><li><a href="https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf"><i class="bi bi-file-earmark-pdf"></i>ESP82866 Documentation</a></li><li><a href="https://www.espressif.com/sites/default/files/documentation/esp8266-technical_reference_en.pdf"><i class="bi bi-file-earmark-pdf"></i>ESP82866 Reference Manual</a></li><li><a href="/docs/NIST.FIPS.197-upd1.pdf"><i class="bi bi-file-earmark-pdf"></i>AES Standard: NIST FIPS 197</a></li><li><a href="/docs/AEDIKO_Relay_Specs.png"><i class="bi bi-file-earmark-image"></i>AEDIKO 12V Relay Module Specs</a></li></ul></div></nav>
+<div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="https://github.com/chrwu17/MechaCrypt"><i class="bi bi-github"></i>MechaCrypt Repository</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">MechaCrypt: A Solenoid-Based Encrypted Data Transmission System</h1>
+<h1 class="title">MechCrypt: Hardware-Encrypted Messaging System</h1>
 </div>
 
 
@@ -213,224 +213,219 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="introduction-and-project-overview" class="level2">
-<h2 class="anchored" data-anchor-id="introduction-and-project-overview">Introduction and Project Overview</h2>
-<p>The goal of the project is to demonstrate serial data transfer through a mechanical actuation mechanism rather than traditional electrical signaling. Mechanical motion, driven by solenoids, relays, and limit switches, replaces voltage as the medium for communication across nine parallel channels, with one serving as the CLK for synchronization and eight for data bits, transmitting one byte per cycle in simplex mode. Each relay energizes a solenoid when its input is HIGH, pressing a limit switch on the receiver side to register a HIGH signal. For secure communication, the sender encrypts messages using AES-128, and the receiver decrypts the transmitted bytes to reconstruct the plaintext. Communication between sender and receiver is coordinated through a web app: the user types or uploads a message, where the ESP8266/ESP32 sends/receives a request to/from the MCU–FPGA system for encryption, transmission, decryption, and final display of the recovered message on the receiver’s web page.</p>
-</section>
-<section id="fpga-use" class="level2">
-<h2 class="anchored" data-anchor-id="fpga-use">FPGA Use</h2>
-<p>The project uses two FPGAs, one on each side of the communication system. Each FPGA handles AES-128 encryption and decryption while interfacing directly with the mechanical bus. The sender FPGA receives plaintext and encryption key from the MCU, encrypts it, and performs bit-banging to maintain synchronization and ensure that a complete byte is transmitted every cycle. The receiver FPGA reads each incoming byte, decrypts it, and sends the plaintext to the MCU for display. It also manages switch input synchronization through debouncing to ensure clean and reliable signal detection. <strong>The new FPGA function is highlighted below:</strong></p>
+<section id="task-allocation-summary" class="level2">
+<h2 class="anchored" data-anchor-id="task-allocation-summary">Task Allocation Summary</h2>
+<p>The work for the past days has been divided as follows:</p>
 <ul>
-<li>Using SPRAM to store encrypted ciphertext, and then pulling from the SPRAM 8 bits at a time to transfer via hardware actuation.</li>
+<li><p><strong>Christian Wu</strong> worked on MCU tasks, including web interface and request handling, message parsing, TRNG key generation, LCD, and transfer/receiving communication protocols regarding either of the MCUs. Also responsible for LCD display hardware and configuration</p></li>
+<li><p><strong>Josaphat Ngoga</strong> worked on FPGA tasks, including encryption/decryption, SPRAM read/write, message sending, bridge module, and FPGA modules to handle SPI communications, as well as relevant MCU drivers where this crosstalk is implemented. Also responsible for setting up various mechanical components.</p></li>
 </ul>
-<p>The FPGAs communicate with the MCUs through SPI and interface with the mechanical bus using a custom serial bit driver that handles all data transmission and input reception. The transfer rate of the bits will be set depending on how we synchonize the receiving end. Bit transfer is handled by the clock, and we can change the clock speed to achieve synchronization, and this will in turn affect how fast we can send bits across.</p>
-<section id="fpga-resource-usage" class="level3">
-<h3 class="anchored" data-anchor-id="fpga-resource-usage">FPGA Resource Usage</h3>
-<p>The FPGAs in this setup will perform AES-128 encryption and decryption, both of which rely heavily on combinational logic, resulting in high LUT usage. Most of the resources are consumed by the iterative round operations, key expansion, and storing S-box substitution tables, with additional LUTs used by the FSMs that will control the actuators and debounce switch inputs. The UPduino has built-in macros for SPI, but serial communication can also use some resources. From research on the implementation of these functions, we estimated a total of <strong>~3500 LUTs</strong>. Since each UPDuino (iCE40UP5K) provides <strong>5,280 logic cells</strong>, this remains within a safe utilization range. For on-board storage, only about <strong>5 kB</strong> of the available <strong>128 kB</strong> memory is required for S-box tables and related data. The tasks stated above are split between 2 FPGAs, therefore, we stay even further from the resource limits of the boards.</p>
+<p>We worked together in setting up all hardware: Relay and solenoid blocks for the actuation system, as well as LCD and ESP8266 wiring.</p>
 </section>
-</section>
-<section id="mcu-use" class="level2">
-<h2 class="anchored" data-anchor-id="mcu-use">MCU Use</h2>
-<p>The project uses two MCUs, one for each side of the system. They serve as the main interface for web communication and text encoding, converting messages into byte data that the FPGA can process. MCUs are ideal for this role due to their large on-board memory, which allows them to handle larger text data. Each MCU also participates in the encryption and decryption process, managing the exchange of keys and ciphertext/plaintext with the FPGAs. Additionally, the MCUs will control all system indicators and feedback mechanisms that help monitor the efficiency of the system. <strong>The new MCU function is shown below:</strong></p>
+<section id="progress-summary" class="level2">
+<h2 class="anchored" data-anchor-id="progress-summary">Progress Summary</h2>
+<section id="fpga-tasks-and-modules" class="level3">
+<h3 class="anchored" data-anchor-id="fpga-tasks-and-modules">FPGA Tasks and Modules</h3>
+<p>On the <strong>sender side</strong>, we have the following modules:</p>
 <ul>
-<li>Using the TRNG to randomly generate keys for encryption. We will send these random keys to the receiver via SPI so that it can decrypt the message correctly.</li>
+<li><p><strong>aesEncryption():</strong> Receives a 128-bit plaintext block and key from MCU 1 and encrypts it, returning the ciphertext and signal to show encryption is done.</p></li>
+<li><p><strong>spramWrite():</strong> Receives the 128-bit ciphertext and splices it into 8 blocks of 16 bits, and each is written into a specific SPRAM block. The module returns the base address to help the read function and a signal that shows SPRAM writing is done.</p></li>
+<li><p><strong>spramRead():</strong> Starting from the base address received from spramWrite(), it sequentially reads the SPRAM block, reconstructing the 128-bit ciphertext.</p></li>
+<li><p><strong>msgSend():</strong> Receives the ciphertext, splices it into 16 bytes, and sends one at a time, starting from the MSB bytes. It has a parameter that allows us to change the speed of the transfer clock.</p></li>
+</ul>
+<p>All of these modules have been tested with respective testbenches to validate functionality and are combined into the <strong>sender()</strong> top module and interact as shown in the block diagram below:</p>
+<div id="fig-senderBlockD" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-senderBlockD-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/senderTop.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Sender Module Block Diagram"><img src="docs/senderTop.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-senderBlockD-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Sender Module Block Diagram
+</figcaption>
+</figure>
+</div>
+<p>On the <strong>receiver side</strong>, we have the following modules:</p>
+<ul>
+<li><p><strong>bridge():</strong> Receives the 128-bit key and total message length (represented as 8-bit binary) from MCU 1, and sends them out to MCU 2. All are done through a custom SPI protocol that defines both MCUs as independent masters controlling their own SCK and CS lines</p></li>
+<li><p><strong>aesDecryption():</strong> Receives a reconstructed 128-bit ciphertext block and key from MCU 1 and decrypts it, returning the plaintext to MCU to decode and display.</p></li>
+<li><p><strong>msgReceive():</strong> Receiving module to be used in case the MCU proves tough to receive the bytes from the actuators. Receives the byte blocks following the tx_clk defined by the sender and reconstructs the full ciphertext for decryption.</p></li>
+</ul>
+<p>All of these modules have been tested with respective testbenches to validate functionality and are combined into the <strong>receiver()</strong> top module and interact as shown in the block diagram below:</p>
+</section>
+<section id="mcu-tasks-and-drivers" class="level3">
+<h3 class="anchored" data-anchor-id="mcu-tasks-and-drivers">MCU Tasks and Drivers</h3>
+<p>On the <strong>sender side</strong>, we have the following drivers:</p>
+<ul>
+<li><strong>webpage.c:</strong> Creates a sender webpage, where the user can write a message, and the webpage will convert it into 128-bit blocks of the ASCII text in hex. When the user hits send, this file will store each block of text and use TRNG to generate a random 128-bit key for each block that exists. It will then send an SPI transaction to the FPGA with the first block and wait for the FPGA’s DONE signal to send subsequent blocks.</li>
+</ul>
+<p>Below is a demo result of what the sender website looks like with example input:</p>
+<div id="fig-senderWeb" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-senderWeb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/senderWeb.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Sender Website sample message demo"><img src="docs/senderWeb.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-senderWeb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Sender Website sample message demo
+</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>trng.c:</strong> This file initializes TRNG and reads the randomly generated bits from it.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/keys.png" class="img-fluid figure-img"></p>
+<figcaption>Key Generation used in the example below</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>main.c:</strong> This file sets up our clock and peripherals and calls upon the functions in webpage.c to execute the webpage.</li>
+</ul>
+<p>Below is a sample SPI transaction from the MCU to FPGA once the MCU receives the user message from the ESP8266 via USART:</p>
+<div id="fig-trace1" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trace1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/trace1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Full SPI Transaction of Plaintext and Key"><img src="docs/trace1.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trace1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Full SPI Transaction of Plaintext and Key
+</figcaption>
+</figure>
+</div>
+<div id="fig-trace2" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trace2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/trace2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Logic Analyzer Trace of first few characters of plaintext"><img src="docs/trace2.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trace2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Logic Analyzer Trace of first few characters of plaintext
+</figcaption>
+</figure>
+</div>
+<div id="fig-trace3" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trace3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/trace3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Logic Analyzer confirming SPI transaction of the TRNG generated key"><img src="docs/trace3.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trace3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Logic Analyzer confirming SPI transaction of the TRNG generated key
+</figcaption>
+</figure>
+</div>
+<p>On the <strong>receiver side</strong>, we have the following drivers:</p>
+<ul>
+<li><strong>webpage.c:</strong> Creates the receiver webpage, which will update with each unencrypted block sent by the FPGA via SPI. It will also concatenate all the received blocks into readable text, which will match the original message sent by the sender.</li>
+</ul>
+<p>Below is a demo result of what the receiver end website looks like with example output:</p>
+<div id="fig-senderWeb" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-senderWeb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/receiverWeb.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Receiver Module Block Diagram"><img src="docs/receiverWeb.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-senderWeb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Receiver Module Block Diagram
+</figcaption>
+</figure>
+</div>
+<ul>
+<li><p><strong>lcd_i2c.c:</strong> This file writes functions to control different aspects of the LCD, like displaying text and the way the text is displayed. This is a file that was converted from C++ to C, as the vendor of the LCD provided sample Arduino files.</p></li>
+<li><p><strong>STM32L432KC_I2C.c:</strong> This file enables I2C1 functionality between our MCU and LCD on PA9 and PA10.</p></li>
+<li><p><strong>main.c:</strong> This file sets up our clock, peripherals, and calls upon functions in the above files to display the webpage, display on the LCD, and communicate with the FPGA.</p></li>
 </ul>
 </section>
-<section id="non-trivial-hardware" class="level2">
-<h2 class="anchored" data-anchor-id="non-trivial-hardware">Non Trivial Hardware</h2>
-<p>This project will implement the use of a LCD Display, which will track the current progress of the transaction and display to the user. When the MCU first gets the message from the user, it will send via SPI the total message length and key to the receiver FPGA. The receiver FPGA will send the total message length to the receiver MCU. So as data transfer is occurring via hardware actuation, the MCU can calculate what percentage of data has been transferred and display that on the LCD Display via I2C.</p>
 </section>
-<section id="bill-of-materials" class="level2">
-<h2 class="anchored" data-anchor-id="bill-of-materials">Bill of Materials</h2>
-<table class="caption-top table">
-<caption>BOM for Final Project</caption>
-<thead>
-<tr class="header">
-<th>Part Name</th>
-<th>Part Number</th>
-<th>Quantity</th>
-<th>Vendor</th>
-<th>Price</th>
-<th>Link</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>12V Relay Module</td>
-<td>SRD-12VDC-SL-C</td>
-<td>10</td>
-<td>AEDIKO</td>
-<td>13.20</td>
-<td><a href="https://www.amazon.com/dp/B0972R8QZS/ref=twister_B0B8HF14T2?_encoding=UTF8&amp;th=1">Link</a></td>
-</tr>
-<tr class="even">
-<td>12V Solenoid</td>
-<td>Z24G50031OJX</td>
-<td>9</td>
-<td>TEHAUX</td>
-<td>28.26</td>
-<td><a href="https://www.amazon.com/dp/B0BRYJS7HD?psc=1&amp;ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_1">Link</a></td>
-</tr>
-<tr class="odd">
-<td>Roller Lever Arm Micro Limit Switch</td>
-<td>KW12-3</td>
-<td>10</td>
-<td>HiLetgo</td>
-<td>6.60</td>
-<td><a href="https://www.amazon.com/dp/B07X142VGC?psc=1&amp;ref_=cm_sw_r_cp_ud_ct_1PBFRK1N28CPX9EH90QX_2">Link</a></td>
-</tr>
-<tr class="even">
-<td>LCD Display with I2C Adapter</td>
-<td>LCD2004</td>
-<td>10</td>
-<td>SunFounder</td>
-<td>14.26</td>
-<td><a href="https://www.amazon.com/dp/B01GPUMP9C?ref=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&amp;ref_=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&amp;social_share=cm_sw_r_cso_cp_apan_dp_T1BWWY2K3NTRHKGR1M92&amp;titleSource=true&amp;th=1">Link</a></td>
-</tr>
-<tr class="odd">
-<td>FPGA</td>
-<td>Upduino v3.1</td>
-<td>2</td>
-<td>Upduino</td>
-<td>Stockroom</td>
-<td>N/A</td>
-</tr>
-<tr class="even">
-<td>MCU</td>
-<td>STM32L432KC</td>
-<td>2</td>
-<td>STM</td>
-<td>Stockroom</td>
-<td>N/A</td>
-</tr>
-<tr class="odd">
-<td>Metal Rods</td>
-<td>N/A</td>
-<td>9</td>
-<td>N/A</td>
-<td>Stockroom</td>
-<td>N/A</td>
-</tr>
-<tr class="even">
-<td>ESP8266</td>
-<td>ESP-WROOM-02</td>
-<td>2</td>
-<td>Edwin Robotics</td>
-<td>Stockroom</td>
-<td>N/A</td>
-</tr>
-<tr class="odd">
-<td><strong>Total</strong></td>
-<td></td>
-<td></td>
-<td></td>
-<td><strong>$62.32</strong></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="project-performance-specs" class="level2">
-<h2 class="anchored" data-anchor-id="project-performance-specs">Project Performance Specs</h2>
-<p>We expect the toughest stage to be the mechanical bus. Synchronizing all actuators and making sure that the receiver samples at the correct time will be the biggest challenge. Since the clock is also mechanical, the whole system is susceptible to any faults from that channel. Below are the main performance specs and secondary specs to check-off to verify the process and completeness of the project:</p>
+<section id="hardware-setup-and-demo" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-setup-and-demo">Hardware Setup and Demo</h2>
+<p>Sending the data requires 8 separate lines, representing the transfer of a full byte and a ninth line for the transfer clock that synchronizes the receiver and sender. For each actuator, each line and connection of components was duplicated 9 times. We 3D printed blocks to fix the different components to ensure proper alignment of all the signal lines. Each line involved the following components:</p>
 <ul>
-<li><strong>Main Performance Specs:</strong>
+<li><p><strong>Relay module:</strong> Served as a high-voltage switch to activate the solenoid when a logic HIGH is received from the FPGA.</p></li>
+<li><p><strong>Yellow LED:</strong> Serves as a visual indicator that a specific line was triggered. Would turn ON in response to the state of the line as dictated by the FPGA. Each LED is connected to a 100Ω current-limiting resistor.</p></li>
+<li><p><strong>Solenoid module:</strong> Connected to the relay and pulls its actuator arm forward when energized.</p></li>
+<li><p><strong>Actuator arm:</strong> 3D-printed to extend from the arm of the solenoid and press a switch.</p></li>
+<li><p><strong>Limit switch:</strong> Pressed when a solenoid is energized. It will register high when pressed and 0 otherwise. It is connected to a 1kΩ pulldown resistor and configured in Normally Open (NO) mode to ensure this behaviour.</p></li>
+<li><p><strong>Level shifter:</strong> Implementerd using two n-channel MOSFETS. The LCD registers high with a voltage between 3.5 to 5.0V. It was used to ensure that a logic HIGH from the MCU is interpreted correctly by bumping the 3.3V GPIO voltage to the specified range.</p></li>
+<li><p><strong>20x4 LCD Display:</strong> To display certain messages as well as message transfer progress. A level shifter was used to raise the 3.3 V output for SDA and SCL to 5 V.</p></li>
+</ul>
+<p>All these components are fixed in the block. The relay block has a dedicated master switch that kills or turns on the whole system. All hardware was assembled following the schematics below:</p>
+<div id="fig-actSender" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-actSender-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/actuationSender.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Schemactic of the Sender Actuation Side"><img src="docs/actuationSender.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-actSender-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Schemactic of the Sender Actuation Side
+</figcaption>
+</figure>
+</div>
+<div id="fig-actReceiver" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-actReceiver-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/actuationReceiver.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8: Schemactic of the Receiver Actuation Side"><img src="docs/actuationReceiver.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-actReceiver-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Schemactic of the Receiver Actuation Side
+</figcaption>
+</figure>
+</div>
+<p>The assembly of the LCD required a level shifter to boost voltages into the required range as shown below:</p>
+<div id="fig-shifter" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-shifter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="docs/levelShifter.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: Level Shifter and ESP8266 Schematic"><img src="docs/levelShifter.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shifter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Level Shifter and ESP8266 Schematic
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="high-level-block-diagram" class="level2">
+<h2 class="anchored" data-anchor-id="high-level-block-diagram">High Level Block Diagram</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/blockDiagram.png" class="img-fluid figure-img"></p>
+<figcaption>High Level Block Diagram</figcaption>
+</figure>
+</div>
+</section>
+<section id="high-level-data-flow-diagram" class="level2">
+<h2 class="anchored" data-anchor-id="high-level-data-flow-diagram">High Level Data Flow Diagram</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/data.png" class="img-fluid figure-img"></p>
+<figcaption>High Level Data Flow Diagram</figcaption>
+</figure>
+</div>
+</section>
+<section id="main-performance-specs" class="level2">
+<h2 class="anchored" data-anchor-id="main-performance-specs">Main Performance Specs:</h2>
 <ul class="task-list">
 <li><label><input type="checkbox">Send 16 ASCII characters</label></li>
-<li><label><input type="checkbox">Send multiple blocks of messages in 128 bit blocks</label></li>
-<li><label><input type="checkbox">Hardware actuation system functions correctly</label></li>
-<li><label><input type="checkbox">Website UI correctly takes in user input and correctly displays output message for receiver</label></li>
+<li><label><input type="checkbox">Send multiple blocks of messages in 128-bit blocks</label></li>
+<li><label><input type="checkbox">The hardware actuation system functions correctly</label></li>
+<li><label><input type="checkbox">Website UI correctly takes in user input and correctly displays the output message for the receiver</label></li>
 <li><label><input type="checkbox">Status and progress LCD respond as expected</label></li>
-<li><label><input type="checkbox">TRNG generates random key</label></li>
-<li><label><input type="checkbox">Random key is transmited to receiver over SPI backhaul</label></li>
-<li><label><input type="checkbox">SPRAM correctly stores multiple 128 bit ciphertext blocks</label></li>
-<li><label><input type="checkbox">FPGA pulls data from SPRAM 8 bits at a time to be sent over mechanical actuation system</label></li>
+<li><label><input type="checkbox">TRNG generates a random key</label></li>
+<li><label><input type="checkbox">Random key is transmitted to the receiver over SPI backhaul</label></li>
+<li><label><input type="checkbox">SPRAM correctly stores multiple ciphertext blocks</label></li>
+<li><label><input type="checkbox">FPGA pulls data from SPRAM to be sent over the mechanical actuation system</label></li>
 <li><label><input type="checkbox">Text messages are correctly sent/received between the ESP8266 to the MCU</label></li>
 <li><label><input type="checkbox">MCU correctly encodes &amp; decodes the received word in ASCII</label></li>
 <li><label><input type="checkbox">MCU-FPGA encryption/decryption modules communicate and perform as expected</label></li>
-<li><label><input type="checkbox">9 mechanical channels properly synchronized between the two sides.</label></li>
-<li><label><input type="checkbox">System stops immediately if received data is different from sent data.</label></li>
+<li><label><input type="checkbox">9 mechanical channels are properly synchronized between the two sides.</label></li>
+<li><label><input type="checkbox">The system stops immediately if the received data is different from the sent data.</label></li>
 <li><label><input type="checkbox">All 8 data buses are read synchronously</label></li>
-<li><label><input type="checkbox">Able to receive &amp; display at least 3 letters in a second i.e minimum 24bps transfer speed</label></li>
-</ul></li>
-<li><strong>Project Midpoint Demo Specs:</strong> At Minimum, the following must be completed:
+<li><label><input type="checkbox">Able to receive &amp; display at least 3 letters per second, i.e, minimum 24bps transfer speed</label></li>
+</ul>
+</section>
+<section id="project-midpoint-demo-specs" class="level2">
+<h2 class="anchored" data-anchor-id="project-midpoint-demo-specs">Project Midpoint Demo Specs</h2>
 <ul class="task-list">
-<li><label><input type="checkbox">Hardware actuation system functions as expected</label></li>
-<li><label><input type="checkbox">ESP8266 Website UI functions and can take in user messages and display output messages</label></li>
+<li><label><input type="checkbox">The hardware actuation system functions as expected</label></li>
+<li><label><input type="checkbox">ESP8266 Website UI functions, which can take in user messages and display output messages</label></li>
 <li><label><input type="checkbox">LCD Display displays text</label></li>
-<li><label><input type="checkbox">RTL &amp; Code has made progress</label></li>
-</ul></li>
+<li><label><input type="checkbox">RTL &amp; Code have made progress</label></li>
 </ul>
-</section>
-<section id="project-timeline-task-allocation" class="level2">
-<h2 class="anchored" data-anchor-id="project-timeline-task-allocation">Project Timeline &amp; Task Allocation</h2>
-<ul>
-<li><strong>By 10/26/2025:</strong> Have the proposal and project approved and verified to begin working (Both).</li>
-<li><strong>Week of 10/27/2025:</strong> Submit purchase order. Develop and test MCU-FPGA encryption module (Josaphat) and MCU driver for ASCII encoding/decoding and web requests (Chistian).</li>
-<li><strong>Week of 11/03/2025:</strong> Machine and cutdown metal rods. Start assembling and testing the electronics and mechanical system. Troubleshoot annd resolve any issues errors (Both).</li>
-<li><strong>Week of 11/10/2025:</strong> Develop and test MCU-FPGA decryption module (Josaphat) and MCU code for system monitoring and fault detection (Christian).</li>
-<li><strong>Week of 11/17/2025:</strong> Preliminary testing of the full system. Connecting all parts and running all systems to check performance and troubleshoot errors (Both).</li>
-<li><strong>Week of 11/24/2025:</strong> Begin preliminary project report. Debug if any errors are still ongoing. If complete, look at implementing some strech goals or aesthetic modificatons. (Both)</li>
-<li><strong>Week of 12/01/2025:</strong> Finalize report. Perfom final system shakedown to validate all performance specs and prepare checkoff sheet. PROJECT DEMO!!! (Both)</li>
-</ul>
-</section>
-<section id="appendix" class="level2">
-<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
-<p>The appendix contains images and diagrams highlighing the full setup and other considerations to ensure the project goes as planned:</p>
-<p>All the relevant elements defined in the description above and will be connected together following the communication protocols and setup in <a href="#fig-sysDiagram" class="quarto-xref">Figure&nbsp;1</a> below:</p>
-<div id="fig-sysDiagram" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-sysDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="docs/topBlockDiagram.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Main Block Diagram."><img src="docs/topBlockDiagram.png" class="img-fluid figure-img"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sysDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Main Block Diagram.
-</figcaption>
-</figure>
-</div>
-<p>Below is also a flowchart of how messages go from the user to receiver through our project in <a href="#fig-message" class="quarto-xref">Figure&nbsp;2</a>:</p>
-<div id="fig-message" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-message-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="docs/message.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Message Flowchart"><img src="docs/message.png" class="img-fluid figure-img"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-message-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Message Flowchart
-</figcaption>
-</figure>
-</div>
-<p>The actuation block requires different modules and setup necessary for it to work as expected. The relay module specifications show the mentioned NO and NC connection modes. <a href="#fig-actBlock" class="quarto-xref">Figure&nbsp;3</a> below shows the signals as well as voltage and circuit configurations:</p>
-<div id="fig-actBlock" class="lightbox quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-actBlock-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="docs/actuationBlock.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Hardware Actuation Block Diagram"><img src="docs/actuationBlock.png" class="img-fluid figure-img"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-actBlock-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Hardware Actuation Block Diagram
-</figcaption>
-</figure>
-</div>
-<div id="fig-actDiagram" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-actDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="docs/actuationCircuit.jpg" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-actDiagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Hardware Actuation 3D Visualization
-</figcaption>
-</figure>
-</div>
-<p>The team has a fall-back plan in case new errors and challenges come up along the way to ensure that at least the main idea of transfering encrypted data mechanically still stands.</p>
-<div id="fig-fallback" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-fallback-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="docs/contingency.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fallback-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Fallback Plan
-</figcaption>
-</figure>
-</div>
 
 
 </section>
